@@ -10,7 +10,7 @@ An implementation of [rollup](https://github.com/barryWhiteHat/roll_up) in which
 ### Build
 
 ```bash
-$ docker build -t rollup/rollup-nc .
+$ docker build -t rollup/rollup-nc docker
 ```
 
 ### Setup
