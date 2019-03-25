@@ -1,18 +1,22 @@
 pragma solidity >=0.4.21;
 
-import './Verifier.sol';
+import './TransferVerifier.sol';
+import './WithdrawVerifier.sol';
 
 contract RollupNC {
 
-    Verifier public verifier;
-    // WithdrawVerifier public withdrawVerifier;
+    TransferVerifier public transferVerifier;
+    WithdrawVerifier public withdrawVerifier;
 
     uint256 merkleRoot;
     address operator;
 
-    constructor(address _verifierContractAddr) public {
-        verifier = Verifier(_verifierContractAddr);
-        // withdrawVerifier = new WithdrawVerifier();
+    constructor(
+        address _transferVerifierContractAddr,
+        address _withdrawVerifierContractAddr) 
+    public {
+        transferVerifier = TransferVerifier(_transferVerifierContractAddr);
+        withdrawVerifier = WithdrawVerifier(_withdrawVerifierContractAddr);
         operator = msg.sender;
     }
 
@@ -28,7 +32,7 @@ contract RollupNC {
             uint[2] memory input) public onlyOperator {
         
         //validate proof
-        require(verifier.verifyProof(a,b,c,input));
+        require(transferVerifier.verifyProof(a,b,c,input));
         
         // update merkle root
         merkleRoot = input[0];
@@ -38,11 +42,11 @@ contract RollupNC {
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[2] memory input
+            uint[8] memory input
     ) public{
 
         //validate withdraw proof
-        // require(withdrawVerifier.verifyProof(a,b,c,input));
+        require(withdrawVerifier.verifyProof(a,b,c,input));
         
         //update merkle root
         merkleRoot = input[0];
