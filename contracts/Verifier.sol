@@ -15,11 +15,11 @@ library Pairing {
         uint[2] Y;
     }
     /// @return the generator of G1
-    function P1() pure internal returns (G1Point) {
+    function P1() pure internal returns (G1Point memory) {
         return G1Point(1, 2);
     }
     /// @return the generator of G2
-    function P2() pure internal returns (G2Point) {
+    function P2() pure internal returns (G2Point memory) {
         // Original code point
         return G2Point(
             [11559732032986387107991004021392285783925812861821192530917403151452391805634,
@@ -39,7 +39,7 @@ library Pairing {
 */
     }
     /// @return the negation of p, i.e. p.addition(p.negate()) should be zero.
-    function negate(G1Point p) pure internal returns (G1Point) {
+    function negate(G1Point memory p) pure internal returns (G1Point memory) {
         // The prime q in the base field F_q for G1
         uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
         if (p.X == 0 && p.Y == 0)
@@ -47,7 +47,7 @@ library Pairing {
         return G1Point(p.X, q - (p.Y % q));
     }
     /// @return the sum of two points of G1
-    function addition(G1Point p1, G1Point p2) view internal returns (G1Point r) {
+    function addition(G1Point memory p1, G1Point memory p2) view internal returns (G1Point memory r) {
         uint[4] memory input;
         input[0] = p1.X;
         input[1] = p1.Y;
@@ -63,7 +63,7 @@ library Pairing {
     }
     /// @return the product of a point on G1 and a scalar, i.e.
     /// p == p.scalar_mul(1) and p.addition(p) == p.scalar_mul(2) for all points p.
-    function scalar_mul(G1Point p, uint s) view internal returns (G1Point r) {
+    function scalar_mul(G1Point memory p, uint s) view internal returns (G1Point memory r) {
         uint[3] memory input;
         input[0] = p.X;
         input[1] = p.Y;
@@ -80,7 +80,7 @@ library Pairing {
     /// e(p1[0], p2[0]) *  .... * e(p1[n], p2[n]) == 1
     /// For example pairing([P1(), P1().negate()], [P2(), P2()]) should
     /// return true.
-    function pairing(G1Point[] p1, G2Point[] p2) view internal returns (bool) {
+    function pairing(G1Point[] memory p1, G2Point[] memory p2) view internal returns (bool) {
         require(p1.length == p2.length);
         uint elements = p1.length;
         uint inputSize = elements * 6;
@@ -105,7 +105,7 @@ library Pairing {
         return out[0] != 0;
     }
     /// Convenience method for a pairing check for two pairs.
-    function pairingProd2(G1Point a1, G2Point a2, G1Point b1, G2Point b2) view internal returns (bool) {
+    function pairingProd2(G1Point memory a1, G2Point memory a2, G1Point memory b1, G2Point memory b2) view internal returns (bool) {
         G1Point[] memory p1 = new G1Point[](2);
         G2Point[] memory p2 = new G2Point[](2);
         p1[0] = a1;
@@ -116,9 +116,9 @@ library Pairing {
     }
     /// Convenience method for a pairing check for three pairs.
     function pairingProd3(
-            G1Point a1, G2Point a2,
-            G1Point b1, G2Point b2,
-            G1Point c1, G2Point c2
+            G1Point memory a1, G2Point memory a2,
+            G1Point memory b1, G2Point memory b2,
+            G1Point memory c1, G2Point memory c2
     ) view internal returns (bool) {
         G1Point[] memory p1 = new G1Point[](3);
         G2Point[] memory p2 = new G2Point[](3);
@@ -132,10 +132,10 @@ library Pairing {
     }
     /// Convenience method for a pairing check for four pairs.
     function pairingProd4(
-            G1Point a1, G2Point a2,
-            G1Point b1, G2Point b2,
-            G1Point c1, G2Point c2,
-            G1Point d1, G2Point d2
+            G1Point memory a1, G2Point memory a2,
+            G1Point memory b1, G2Point memory b2,
+            G1Point memory c1, G2Point memory c2,
+            G1Point memory d1, G2Point memory d2
     ) view internal returns (bool) {
         G1Point[] memory p1 = new G1Point[](4);
         G2Point[] memory p2 = new G2Point[](4);
@@ -164,7 +164,7 @@ contract Verifier {
         Pairing.G2Point B;
         Pairing.G1Point C;
     }
-    function verifyingKey() pure internal returns (VerifyingKey vk) {
+    function verifyingKey() pure internal returns (VerifyingKey memory vk) {
         vk.alfa1 = Pairing.G1Point(16207976686896712039374020720990179716099077106081478590328149945571115933630,16541685107613919465726078049354919289010589197522285031347176292813368820721);
         vk.beta2 = Pairing.G2Point([2031390129094529442166910691121196933228081593988130810950843360552770521983,11179543787048798781777018039111062889869409681458123580348864570297438491224], [9326521038611341766164322328750460156829290610293964460954352477997744634585,6546418172618026538234143505251940195574641865787786847770582059977296881649]);
         vk.gamma2 = Pairing.G2Point([7172580490337278383768586766331909516033898541162627895649844141426066949792,17723969219826454493442861600933222764288891522104383532570086132421685066136], [11136831978747843167641636198717031091681964521118700968141689332342109511743,11412611844787998404953776764319511284325426542091399694617169331515248108825]);
@@ -175,7 +175,7 @@ contract Verifier {
         vk.IC[2] = Pairing.G1Point(18856632837574597649873665254543610224245528704643105196870831752892195080386,20894408912757283838165129132856112907523721989841121687350472982074186216593);
 
     }
-    function verify(uint[] input, Proof proof) view internal returns (uint) {
+    function verify(uint[] memory input, Proof memory proof) view internal returns (uint) {
         VerifyingKey memory vk = verifyingKey();
         require(input.length + 1 == vk.IC.length);
         // Compute the linear combination vk_x
@@ -192,10 +192,10 @@ contract Verifier {
         return 0;
     }
     function verifyProof(
-            uint[2] a,
-            uint[2][2] b,
-            uint[2] c,
-            uint[2] input
+            uint[2] memory a,
+            uint[2][2] memory b,
+            uint[2] memory c,
+            uint[2] memory input
         ) view public returns (bool r) {
         Proof memory proof;
         proof.A = Pairing.G1Point(a[0], a[1]);
