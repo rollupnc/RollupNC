@@ -27,6 +27,7 @@ Circuit can be found at `signature_verification/eddsa_mimc_verifier.circom`
 #### Generate circuit
 
 ```bash
+$ cd circomlib
 $ circom signature_verification/eddsa_mimc_verifier.circom -o signature_verification/eddsa_mimc_verifier.cir
 ```
 
@@ -37,7 +38,8 @@ Checkout `signature_verification/generate_sample_eddsa_mimc_verifier.js`
 Run the command below to generate input for calculating witness.
 
 ```bash
-$ node signature_verification/generate_sample_eddsa_mimc_verifier.js
+$ cd signature_verification
+$ node generate_sample_eddsa_mimc_verifier.js
 ```
 
 A file `eddsa_mimc_input.json` would be created which is then supplied while generating witness.
@@ -67,7 +69,8 @@ Checkout `leaf_update/generate_sample_leaf_update.js`
 Run the command below to generate input for calculating witness.
 
 ```bash
-$ node leaf_update/generate_sample_leaf_update.js
+$ cd leaf_update
+$ node generate_sample_leaf_update.js
 ```
 
 A file `leaf_update_input.json` could be created which is then supplied while generating witness.
@@ -87,11 +90,12 @@ $ circom tokens_transfer/tokens_transfer.circom -o tokens_transfer/tokens_transf
 
 #### Generate Input
 
-Checkout `token_transfers/generate_sample_tokens_transfer.js`
+Checkout `token_transfer/generate_sample_tokens_transfer.js`
 Run the command below to generate input for calculating witness.
 
 ```bash
-$ node tokens_transfers/generate_sample_tokens_transfer.js
+$ cd tokens_transfer
+$ node generate_sample_tokens_transfer.js
 ```
 
 A file `tokens_transfer_input.json` could be created which is then supplied while generating witness.
