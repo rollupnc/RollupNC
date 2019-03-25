@@ -1,6 +1,6 @@
-include "./circuits/mimc.circom";
-include "./circuits/eddsamimc.circom";
-include "./circuits/bitify.circom";
+include "../circuits/mimc.circom";
+include "../circuits/eddsamimc.circom";
+include "../circuits/bitify.circom";
 
 template Main(n) {
     signal private input paths_to_root[n-1];

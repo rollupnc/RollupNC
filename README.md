@@ -127,3 +127,8 @@ Checkout `verifier.sol` -- This contract will verify snarks on-chainand will be 
 So now we have a smart contract where we can deposit coins to move to the side chain.
 
 Then we can transfer them via snark and eventually we can withdraw them to the main chain again.
+
+### Deposit
+
+
+### Withdraw

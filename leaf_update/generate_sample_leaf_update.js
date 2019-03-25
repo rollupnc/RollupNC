@@ -1,8 +1,8 @@
-const eddsa = require("./src/eddsa.js");
+const eddsa = require("../src/eddsa.js");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 const util = require("util");
-const mimcjs = require("./src/mimc7.js");
+const mimcjs = require("../src/mimc7.js");
 
 const bigInt = snarkjs.bigInt;
 

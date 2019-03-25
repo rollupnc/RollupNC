@@ -1,4 +1,4 @@
-const eddsa = require("./src/eddsa.js");
+const eddsa = require("../src/eddsa.js");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 var util = require("util");
