@@ -1,9 +1,9 @@
 const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 
-// let testnet = 'rinkeby'
+let testnet = 'rinkeby'
 // let testnet = 'ropsten'
-let testnet = 'kovan'
+// let testnet = 'kovan'
 let selectedHost = 'https://' + testnet + '.infura.io/v3/ce26c7d418db4e4695aaa359a1013ab2';
 web3 = new Web3(new Web3.providers.HttpProvider(selectedHost));
 
@@ -40,19 +40,21 @@ async function deployContract(){
     // Transaction is signed
     tx.sign(privKey);
     const serializedTx = tx.serialize();
-    const rawTx = '0x' + serializedTx.toString('hex');
 
-    web3.eth.sendSignedTransaction(rawTx,
-    function(err, hash) {
-        if (!err) {
-            txHash = hash;
-            console.log('txHash is ' + hash);
-        }
-        else{
-            console.log(err);
-        }
+    await(web3.eth.sendSignedTransaction(
+        '0x' + serializedTx.toString('hex')
+    )
+    .once('transactionHash', function(hash){
+        console.log('txHash ' + hash)
     })
-
+    .once('receipt', function(receipt){
+        console.log(receipt)
+    })
+    .on('error', function(error,receipt){
+        console.log('possible out of gas error')
+        console.log(receipt)
+    })
+    .then(function(receipt){console.log(receipt)}))
 }
 
 deployContract()
