@@ -1,3 +1,3 @@
-include "./circuits/eddsamimc.circom";
+include "../circuits/eddsamimc.circom";
 
 component main = EdDSAMiMCVerifier();
