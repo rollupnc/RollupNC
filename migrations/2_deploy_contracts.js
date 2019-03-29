@@ -3,10 +3,12 @@ var Pairing = artifacts.require("./Pairing.sol");
 var TransferVerifier = artifacts.require("./TransferVerifier.sol");
 var WithdrawVerifier = artifacts.require("./WithdrawVerifier.sol");
 var RollupNC = artifacts.require("./RollupNC.sol");
+var TestToken = artifacts.require("./TestToken.sol");
 
 module.exports = function(deployer, accounts) {
     deployer.deploy(Migrations);
     deployer.deploy(Pairing);
+    deployer.deploy(TestToken);
     deployer.link(Pairing, [TransferVerifier,WithdrawVerifier]);
     deployer.deploy(TransferVerifier).then(() => {
       return deployer.deploy(WithdrawVerifier);
