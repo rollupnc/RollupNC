@@ -1,11 +1,12 @@
-const eddsa = require("../src/eddsa.js");
+const eddsa = require("../circomlib/src/eddsa.js");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 const util = require("util");
-const mimcjs = require("../src/mimc7.js");
+const mimcjs = require("../circomlib/src/mimc7.js");
 
 const bigInt = snarkjs.bigInt;
 
+const TX_DEPTH = 4;
 const DEPTH = 6;
 
 const prvKey_from = Buffer.from(
@@ -29,6 +30,12 @@ const token_type_to = 10;
 const token_balance_to = 2000;
 const amount = 100;
 
+const tx_leaf = mimcjs.multiHash([
+  pubKey_from[0],
+  pubKey_to[0],
+  amount,
+  token_type_from
+]);
 const old_hash_leaf_from = mimcjs.multiHash([
   pubKey_from[0],
   token_balance_from,
@@ -41,6 +48,20 @@ const old_hash_leaf_to = mimcjs.multiHash([
   nonce_to,
   token_type_to
 ]);
+
+console.log(
+  "We placed the transaction at index 0 of the Transaction Merkle Tree"
+);
+var tx_root = new Array(TX_DEPTH -1);
+tx_root[0] = mimcjs.multiHash([tx_leaf,0]);
+
+var i;
+for (i = 1; i < TX_DEPTH - 1; i++) {
+  tx_root[i] = mimcjs.multiHash([tx_root[i-1], 0]);
+}
+
+console.log("Transaction root");
+console.log(tx_root[TX_DEPTH -2]);
 
 console.log(
   "We selected to place account 1 and 2 at index 0 and 1 of the Merkle Tree"
@@ -82,6 +103,14 @@ console.log("Updated Root");
 console.log(new_merkle[DEPTH - 2]);
 
 const inputs = {
+  tx_root: tx_root[TX_DEPTH - 2].toString(),
+
+  paths2tx_root: [0, 0, 0],
+
+  paths2tx_root_pos: [0, 0, 0],
+
+  current_state: old_merkle[DEPTH - 2].toString(),
+
   paths2old_root_from: [old_hash_leaf_to.toString(), 0, 0, 0, 0],
   paths2old_root_to: [old_hash_leaf_from.toString(), 0, 0, 0, 0],
   paths2new_root_from: [new_hash_leaf_to.toString(), 0, 0, 0, 0],
@@ -89,7 +118,6 @@ const inputs = {
   paths2root_from_pos: [0, 0, 0, 0, 0],
   paths2root_to_pos: [1, 0, 0, 0, 0],
 
-  current_state: old_merkle[DEPTH - 2].toString(),
   pubkey_x: pubKey_from[0].toString(),
   pubkey_y: pubKey_from[1].toString(),
   R8x: signature.R8[0].toString(),
