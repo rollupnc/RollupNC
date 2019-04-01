@@ -36,6 +36,7 @@ const tx_leaf = mimcjs.multiHash([
   amount,
   token_type_from
 ]);
+
 const old_hash_leaf_from = mimcjs.multiHash([
   pubKey_from[0],
   token_balance_from,

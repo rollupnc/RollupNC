@@ -19,9 +19,9 @@ contract RollupNC {
     address operator;
 
     constructor(
+        // address _mimcContractAddr,
         address _transferVerifierContractAddr,
         address _withdrawVerifierContractAddr
-        // address _mimcContractAddr
     ) public {
         transferVerifier = TransferVerifier(_transferVerifierContractAddr);
         withdrawVerifier = WithdrawVerifier(_withdrawVerifierContractAddr);
@@ -48,13 +48,18 @@ contract RollupNC {
     }
 
     // function withdraw(
-    //     uint256 
+    //     bytes memory pubkey_from,
+    //     bytes memory pubkey_to,
+    //     uint amount,
+    //     uint token_type_from, 
     //     uint256 tx_merkle_root, 
     //     uint256[24] memory proof, 
     //     bool[24] memory path, 
     //     uint256 leaf,
     //     address recipient
     // ) public{
+    //     require(pubkey_to.equals(bytes("0")));
+    //     require(membership_proof(tx_merkle_root,leaf,proof,path));
 
     // }
 
