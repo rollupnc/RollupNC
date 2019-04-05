@@ -22,3 +22,9 @@ $ docker run -ti rollup/rollup-nc /bin/bash
 ```bash
 npm run deploy-mimc 
 ```
+
+### Test locally 
+```bash
+npm run rpc
+npm run test
+```
