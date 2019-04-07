@@ -1,7 +1,7 @@
 pragma solidity >=0.4.21;
 
 import './TransferVerifier.sol';
-import './WithdrawVerifier.sol';
+import './Withdraw.sol';
 
 contract MiMC {
 
@@ -12,7 +12,7 @@ contract MiMC {
 contract RollupNC {
 
     TransferVerifier public transferVerifier;
-    WithdrawVerifier public withdrawVerifier;
+    Withdraw public withdraw;
     // MiMC public mimc; //Rinkeby: 0xbB9da456E4918A450A936dc952F6f5d68EB76F69
 
     uint256 merkleRoot;
@@ -21,10 +21,10 @@ contract RollupNC {
     constructor(
         // address _mimcContractAddr,
         address _transferVerifierContractAddr,
-        address _withdrawVerifierContractAddr
+        address _withdrawContractAddr
     ) public {
         transferVerifier = TransferVerifier(_transferVerifierContractAddr);
-        withdrawVerifier = WithdrawVerifier(_withdrawVerifierContractAddr);
+        withdraw = Withdraw(_withdrawContractAddr);
         // mimc = MiMC(_mimcContractAddr); 
         operator = msg.sender;
     }
