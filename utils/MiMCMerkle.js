@@ -11,7 +11,7 @@ module.exports = {
             root[0] = mimcjs.multiHash([left, right]);
             var i;
             for (i = 1; i < depth - 1; i++) {
-                left = root[i-1] - BigInt(merkle_path_pos[i])*(leaf - BigInt(merkle_path[i]));
+                left = root[i-1] - BigInt(merkle_path_pos[i])*(root[i-1] - BigInt(merkle_path[i]));
                 right = BigInt(merkle_path[i]) - BigInt(merkle_path_pos[i])*(BigInt(merkle_path[i]) - root[i-1]);              
                 root[i] = mimcjs.multiHash([left, right]);
             }

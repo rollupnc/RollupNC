@@ -153,15 +153,10 @@ const inputs = {
     JSON.stringify(inputs),
     "utf-8"
   );
-  
 
-// test
-test_paths2old_root_from = [zero_leaf.toString(),0,0,0,0]
-test_paths2old_root_to = [alice_leaf.toString(),0,0,0,0]
-test_paths2new_root_from = [zero_leaf.toString(),0,0,0,0]
-test_paths2new_root_to = [new_alice_leaf,0,0,0,0]
+//Ethereum address to claim withdrawal from smart contract
+const recipient_address = 0xcE152b33c48be6e0c5876b057334eA01c8deC0e5;
 
-const test_new_balance_root_zero = merkle.rootFromLeafAndPath(
-    BAL_DEPTH, zero_leaf, test_paths2new_root_to, balance_pos_zero
-) 
-console.log(test_new_balance_root_zero)
+const contractInput = {
+    
+}
