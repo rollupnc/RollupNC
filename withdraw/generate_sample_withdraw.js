@@ -155,8 +155,20 @@ const inputs = {
   );
 
 //Ethereum address to claim withdrawal from smart contract
-const recipient_address = 0xcE152b33c48be6e0c5876b057334eA01c8deC0e5;
-
-const contractInput = {
-    
+const recipient_address = "0xb16c0a1ed2d7275286d795b648befed94902142a";
+const tx_leaf = withdrawTxLeaf.toString();
+const data = [recipient_address, tx_leaf];
+const msgHash = mimcjs.multiHash(data);
+const signature2 = eddsa.signMiMC(prvKeys, msgHash)
+const contractInputs = {
+    msgHash: msgHash.toString(),
+    R8x: signature2.R8[0].toString(),
+    R8y: signature2.R8[1].toString(),
+    S: signature2.S.toString(),
 }
+
+fs.writeFileSync(
+    "./contractInput.json",
+    JSON.stringify(contractInputs),
+    "utf-8"
+  );

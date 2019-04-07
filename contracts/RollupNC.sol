@@ -3,11 +3,11 @@ pragma solidity >=0.4.21;
 import './TransferVerifier.sol';
 import './Withdraw.sol';
 
-contract MiMC {
+// contract MiMC {
 
-    function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
+//     function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
 
-}
+// }
 
 contract RollupNC {
 

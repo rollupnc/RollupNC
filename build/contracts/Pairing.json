@@ -1,14 +1,15 @@
 {
   "contractName": "Pairing",
   "abi": [],
-  "bytecode": "0x604c602c600b82828239805160001a60731460008114601c57601e565bfe5b5030600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a7230582056aace1768570037221404c15211cf08a87a955c13e7b9b6d714991723ed0cdf0029",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a7230582056aace1768570037221404c15211cf08a87a955c13e7b9b6d714991723ed0cdf0029",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.0+commit.1d4f565a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/user/rollupnc/contracts/Pairing.sol\":\"Pairing\"},\"evmVersion\":\"byzantium\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/user/rollupnc/contracts/Pairing.sol\":{\"keccak256\":\"0x3ad9febb9c8da1b94126df6ae91cf6073965d01dd90e59c7805b90dcf38dbc59\",\"urls\":[\"bzzr://b86ec1f87abf2d55ffb49ce36723d8af6f264973667809296f2d210a0fc510e4\"]}},\"version\":1}",
+  "bytecode": "0x604c602c600b82828239805160001a60731460008114601c57601e565bfe5b5030600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a72305820fd47ab15ab7611c80a866b0619023d1c4170fd3b778da038ad679515562b8d370029",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea165627a7a72305820fd47ab15ab7611c80a866b0619023d1c4170fd3b778da038ad679515562b8d370029",
   "sourceMap": "26:5566:1:-;;132:2:-1;166:7;155:9;146:7;137:37;252:7;246:14;243:1;238:23;232:4;229:33;270:1;265:20;;;;222:63;;265:20;274:9;222:63;;298:9;295:1;288:20;328:4;319:7;311:22;352:7;343;336:24",
   "deployedSourceMap": "26:5566:1:-;;;;;;;;",
   "source": "pragma solidity >=0.4.17;\nlibrary Pairing {\n    struct G1Point {\n        uint X;\n        uint Y;\n    }\n    // Encoding of field elements is: X[0] * z + X[1]\n    struct G2Point {\n        uint[2] X;\n        uint[2] Y;\n    }\n    /// @return the generator of G1\n    function P1() pure internal returns (G1Point memory) {\n        return G1Point(1, 2);\n    }\n    /// @return the generator of G2\n    function P2() pure internal returns (G2Point memory) {\n        // Original code point\n        return G2Point(\n            [11559732032986387107991004021392285783925812861821192530917403151452391805634,\n             10857046999023057135944570762232829481370756359578518086990519993285655852781],\n            [4082367875863433681332203403145435568316851327593401208105741076214120093531,\n             8495653923123431417604973247489272438418190587263600148770280649306958101930]\n        );\n\n/*\n        // Changed by Jordi point\n        return G2Point(\n            [10857046999023057135944570762232829481370756359578518086990519993285655852781,\n             11559732032986387107991004021392285783925812861821192530917403151452391805634],\n            [8495653923123431417604973247489272438418190587263600148770280649306958101930,\n             4082367875863433681332203403145435568316851327593401208105741076214120093531]\n        );\n*/\n    }\n    /// @return the negation of p, i.e. p.addition(p.negate()) should be zero.\n    function negate(G1Point memory p) pure internal returns (G1Point memory) {\n        // The prime q in the base field F_q for G1\n        uint q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;\n        if (p.X == 0 && p.Y == 0)\n            return G1Point(0, 0);\n        return G1Point(p.X, q - (p.Y % q));\n    }\n    /// @return the sum of two points of G1\n    function addition(G1Point memory p1, G1Point memory p2) view internal returns (G1Point memory r) {\n        uint[4] memory input;\n        input[0] = p1.X;\n        input[1] = p1.Y;\n        input[2] = p2.X;\n        input[3] = p2.Y;\n        bool success;\n        assembly {\n            success := staticcall(sub(gas, 2000), 6, input, 0xc0, r, 0x60)\n            // Use \"invalid\" to make gas estimation work\n            switch success case 0 { invalid() }\n        }\n        require(success);\n    }\n    /// @return the product of a point on G1 and a scalar, i.e.\n    /// p == p.scalar_mul(1) and p.addition(p) == p.scalar_mul(2) for all points p.\n    function scalar_mul(G1Point memory p, uint s) view internal returns (G1Point memory r) {\n        uint[3] memory input;\n        input[0] = p.X;\n        input[1] = p.Y;\n        input[2] = s;\n        bool success;\n        assembly {\n            success := staticcall(sub(gas, 2000), 7, input, 0x80, r, 0x60)\n            // Use \"invalid\" to make gas estimation work\n            switch success case 0 { invalid() }\n        }\n        require (success);\n    }\n    /// @return the result of computing the pairing check\n    /// e(p1[0], p2[0]) *  .... * e(p1[n], p2[n]) == 1\n    /// For example pairing([P1(), P1().negate()], [P2(), P2()]) should\n    /// return true.\n    function pairing(G1Point[] memory p1, G2Point[] memory p2) view internal returns (bool) {\n        require(p1.length == p2.length);\n        uint elements = p1.length;\n        uint inputSize = elements * 6;\n        uint[] memory input = new uint[](inputSize);\n        for (uint i = 0; i < elements; i++)\n        {\n            input[i * 6 + 0] = p1[i].X;\n            input[i * 6 + 1] = p1[i].Y;\n            input[i * 6 + 2] = p2[i].X[0];\n            input[i * 6 + 3] = p2[i].X[1];\n            input[i * 6 + 4] = p2[i].Y[0];\n            input[i * 6 + 5] = p2[i].Y[1];\n        }\n        uint[1] memory out;\n        bool success;\n        assembly {\n            success := staticcall(sub(gas, 2000), 8, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)\n            // Use \"invalid\" to make gas estimation work\n            switch success case 0 { invalid() }\n        }\n        require(success);\n        return out[0] != 0;\n    }\n    /// Convenience method for a pairing check for two pairs.\n    function pairingProd2(G1Point memory a1, G2Point memory a2, G1Point memory b1, G2Point memory b2) view internal returns (bool) {\n        G1Point[] memory p1 = new G1Point[](2);\n        G2Point[] memory p2 = new G2Point[](2);\n        p1[0] = a1;\n        p1[1] = b1;\n        p2[0] = a2;\n        p2[1] = b2;\n        return pairing(p1, p2);\n    }\n    /// Convenience method for a pairing check for three pairs.\n    function pairingProd3(\n            G1Point memory a1, G2Point memory a2,\n            G1Point memory b1, G2Point memory b2,\n            G1Point memory c1, G2Point memory c2\n    ) view internal returns (bool) {\n        G1Point[] memory p1 = new G1Point[](3);\n        G2Point[] memory p2 = new G2Point[](3);\n        p1[0] = a1;\n        p1[1] = b1;\n        p1[2] = c1;\n        p2[0] = a2;\n        p2[1] = b2;\n        p2[2] = c2;\n        return pairing(p1, p2);\n    }\n    /// Convenience method for a pairing check for four pairs.\n    function pairingProd4(\n            G1Point memory a1, G2Point memory a2,\n            G1Point memory b1, G2Point memory b2,\n            G1Point memory c1, G2Point memory c2,\n            G1Point memory d1, G2Point memory d2\n    ) view internal returns (bool) {\n        G1Point[] memory p1 = new G1Point[](4);\n        G2Point[] memory p2 = new G2Point[](4);\n        p1[0] = a1;\n        p1[1] = b1;\n        p1[2] = c1;\n        p1[3] = d1;\n        p2[0] = a2;\n        p2[1] = b2;\n        p2[2] = c2;\n        p2[3] = d2;\n        return pairing(p1, p2);\n    }\n}",
-  "sourcePath": "/home/yingtong/RollupNC/contracts/Pairing.sol",
+  "sourcePath": "/home/user/rollupnc/contracts/Pairing.sol",
   "ast": {
-    "absolutePath": "/home/yingtong/RollupNC/contracts/Pairing.sol",
+    "absolutePath": "/home/user/rollupnc/contracts/Pairing.sol",
     "exportedSymbols": {
       "Pairing": [
         630
@@ -1634,24 +1635,6 @@
                 {
                   "externalReferences": [
                     {
-                      "success": {
-                        "declaration": 181,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2084:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
-                      "success": {
-                        "declaration": 181,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2223:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
                       "input": {
                         "declaration": 150,
                         "isOffset": false,
@@ -1666,6 +1649,24 @@
                         "isOffset": false,
                         "isSlot": false,
                         "src": "2138:1:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 181,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2084:7:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 181,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2223:7:1",
                         "valueSize": 1
                       }
                     }
@@ -1704,10 +1705,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "2270:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -2221,24 +2222,6 @@
                 {
                   "externalReferences": [
                     {
-                      "success": {
-                        "declaration": 225,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2688:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
-                      "success": {
-                        "declaration": 225,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2827:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
                       "input": {
                         "declaration": 202,
                         "isOffset": false,
@@ -2253,6 +2236,24 @@
                         "isOffset": false,
                         "isSlot": false,
                         "src": "2742:1:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 225,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2688:7:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 225,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2827:7:1",
                         "valueSize": 1
                       }
                     }
@@ -2291,10 +2292,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "2874:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -2529,10 +2530,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "3207:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -4341,20 +4342,20 @@
                 {
                   "externalReferences": [
                     {
-                      "input": {
-                        "declaration": 266,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "3809:5:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
                       "success": {
                         "declaration": 378,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "3764:7:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "input": {
+                        "declaration": 266,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "3809:5:1",
                         "valueSize": 1
                       }
                     },
@@ -4420,10 +4421,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "3979:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -7732,7 +7733,7 @@
     "src": "0:5592:1"
   },
   "legacyAST": {
-    "absolutePath": "/home/yingtong/RollupNC/contracts/Pairing.sol",
+    "absolutePath": "/home/user/rollupnc/contracts/Pairing.sol",
     "exportedSymbols": {
       "Pairing": [
         630
@@ -9358,24 +9359,6 @@
                 {
                   "externalReferences": [
                     {
-                      "success": {
-                        "declaration": 181,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2084:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
-                      "success": {
-                        "declaration": 181,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2223:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
                       "input": {
                         "declaration": 150,
                         "isOffset": false,
@@ -9390,6 +9373,24 @@
                         "isOffset": false,
                         "isSlot": false,
                         "src": "2138:1:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 181,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2084:7:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 181,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2223:7:1",
                         "valueSize": 1
                       }
                     }
@@ -9428,10 +9429,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "2270:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -9945,24 +9946,6 @@
                 {
                   "externalReferences": [
                     {
-                      "success": {
-                        "declaration": 225,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2688:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
-                      "success": {
-                        "declaration": 225,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "2827:7:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
                       "input": {
                         "declaration": 202,
                         "isOffset": false,
@@ -9977,6 +9960,24 @@
                         "isOffset": false,
                         "isSlot": false,
                         "src": "2742:1:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 225,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2688:7:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "success": {
+                        "declaration": 225,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2827:7:1",
                         "valueSize": 1
                       }
                     }
@@ -10015,10 +10016,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "2874:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -10253,10 +10254,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "3207:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -12065,20 +12066,20 @@
                 {
                   "externalReferences": [
                     {
-                      "input": {
-                        "declaration": 266,
-                        "isOffset": false,
-                        "isSlot": false,
-                        "src": "3809:5:1",
-                        "valueSize": 1
-                      }
-                    },
-                    {
                       "success": {
                         "declaration": 378,
                         "isOffset": false,
                         "isSlot": false,
                         "src": "3764:7:1",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "input": {
+                        "declaration": 266,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "3809:5:1",
                         "valueSize": 1
                       }
                     },
@@ -12144,10 +12145,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        1567,
-                        1568
+                        2118,
+                        2119
                       ],
-                      "referencedDeclaration": 1567,
+                      "referencedDeclaration": 2118,
                       "src": "3979:7:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
@@ -15460,8 +15461,8 @@
     "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.0.2",
-  "updatedAt": "2019-03-25T14:38:31.526Z",
+  "schemaVersion": "3.0.6",
+  "updatedAt": "2019-04-07T16:33:05.086Z",
   "devdoc": {
     "methods": {}
   },
