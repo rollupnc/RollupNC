@@ -7,6 +7,9 @@ let testnet = 'rinkeby'
 let selectedHost = 'https://' + testnet + '.infura.io/v3/ce26c7d418db4e4695aaa359a1013ab2';
 web3 = new Web3(new Web3.providers.HttpProvider(selectedHost));
 
+// // for local blockchain
+// web3 = new Web3(new Web3.providers.HttpProvider(https://localhost:8545))
+
 const address = '0xcE152b33c48be6e0c5876b057334eA01c8deC0e5';
 const privKey = Buffer.from('0a90e10ddcef51b9ad063518f90e2f4e6b8bf12c2b6b4359bf2310aa597898fc', 'hex');
 
