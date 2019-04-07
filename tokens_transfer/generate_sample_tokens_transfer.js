@@ -32,19 +32,23 @@ const amount = 100;
 
 const tx_leaf = mimcjs.multiHash([
   pubKey_from[0],
+  pubKey_from[1],
   pubKey_to[0],
+  pubKey_to[1],
   amount,
   token_type_from
 ]);
 
 const old_hash_leaf_from = mimcjs.multiHash([
   pubKey_from[0],
+  pubKey_from[1],
   token_balance_from,
   nonce_from,
   token_type_from
 ]);
 const old_hash_leaf_to = mimcjs.multiHash([
   pubKey_to[0],
+  pubKey_to[1],
   token_balance_to,
   nonce_to,
   token_type_to
@@ -82,12 +86,14 @@ const signature = eddsa.signMiMC(prvKey_from, old_hash_leaf_from);
 
 const new_hash_leaf_from = mimcjs.multiHash([
   pubKey_from[0],
+  pubKey_from[1],
   token_balance_from - amount,
   nonce_from + 1,
   token_type_from
 ]);
 const new_hash_leaf_to = mimcjs.multiHash([
   pubKey_to[0],
+  pubKey_to[1],
   token_balance_to + amount,
   nonce_to,
   token_type_to
@@ -116,18 +122,22 @@ const inputs = {
   paths2old_root_to: [old_hash_leaf_from.toString(), 0, 0, 0, 0],
   paths2new_root_from: [new_hash_leaf_to.toString(), 0, 0, 0, 0],
   paths2new_root_to: [new_hash_leaf_from.toString(), 0, 0, 0, 0],
+
   paths2root_from_pos: [0, 0, 0, 0, 0],
   paths2root_to_pos: [1, 0, 0, 0, 0],
 
-  pubkey_x: pubKey_from[0].toString(),
-  pubkey_y: pubKey_from[1].toString(),
+  from_x: pubKey_from[0].toString(),
+  from_y: pubKey_from[1].toString(),
   R8x: signature.R8[0].toString(),
   R8y: signature.R8[1].toString(),
   S: signature.S.toString(),
+
   nonce_from: nonce_from.toString(),
-  to: pubKey_to[0].toString(),
+  to_x: pubKey_to[0].toString(),
+  to_y: pubKey_to[1].toString(),
   nonce_to: nonce_to.toString(),
   amount: amount.toString(),
+
   token_balance_from: token_balance_from.toString(),
   token_balance_to: token_balance_to.toString(),
   token_type_from: token_type_from.toString(),
@@ -135,7 +145,7 @@ const inputs = {
 };
 
 fs.writeFileSync(
-  "./tokens_transfer_input.json",
+  "./input.json",
   JSON.stringify(inputs),
   "utf-8"
 );
