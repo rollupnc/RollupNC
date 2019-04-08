@@ -57,7 +57,9 @@ contract("MiMC7 Hashing", async accounts => {
         F = hash(C, D)
         G = hash(E, F)
 
-        multihash(a,b,c,d) == G
+        multihash(a,b,c,d) != G
+        multihash(a,b,c,d) != hash(hash(a, b), hash(c, d))
+        multihash(a,b,c,d) == hash(hash(hash(hash(IV, a), b), c), d)
     */
     it("Should parse trees the same way as the multihash", async () => {
         const a = BigInt(123).toString()
@@ -65,21 +67,27 @@ contract("MiMC7 Hashing", async accounts => {
         const c = BigInt(894).toString()
         const d = BigInt(354).toString()
 
-        const solE = await mimc.methods.MiMCpe7(a,b).call();
-        const jsE = mimcjs.hash(a,b,91);
+        const solE = await mimc.methods.MiMCpe7(a, b).call();
+        const jsE = mimcjs.hash(a, b);
         assert.equal(solE.toString(), jsE.toString());
         
-        const solF = await mimc.methods.MiMCpe7(c,d).call();
-        const jsF = mimcjs.hash(c,d,91);
+        const solF = await mimc.methods.MiMCpe7(c, d).call();
+        const jsF = mimcjs.hash(c, d);
         assert.equal(solF.toString(), jsF.toString());
         
-        const solG = await mimc.methods.MiMCpe7(solE,solF).call();
-        const jsG = mimcjs.hash(jsE,jsF,91);
+        // g = hash(hash(a, b), hash(c, d))
+        const solG = await mimc.methods.MiMCpe7(solE, solF).call();
+        const jsG = mimcjs.hash(jsE, jsF);
         assert.equal(solG.toString(), jsG.toString());
 
         // TODO: parse it with ying tong's MiMCMerkle.js after merge
-        const multihashG = "2759747462699562558935982208313030995393157958724403873977193283477287402170"
-        assert.equal(multihashG, jsG, "wrong multihash")
+        // g = hash(hash(hash(hash(IV, a), b), c), d)
+        const hashG = mimcjs.hash(mimcjs.hash(mimcjs.hash(mimcjs.hash(mimcjs.getIV(), a), b), c), d);
+
+        // multihash is crashing the whole test, comment it out to see the result of the rest
+        const multihashG = mimcjs.multiHash([a, b, c, d]);
+        assert.equal(multihashG, hashG, "wrong multihash");
+        assert.notEqual(multihashG, jsG);
     });
 
     // // https://github.com/HarryR/ethsnarks/blob/master/test/TestMiMC.sol
