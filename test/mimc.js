@@ -39,6 +39,14 @@ contract("MiMC7 Hashing", async accounts => {
         assert.equal(solidityResult.toString(), jsExpected.toString(), "Unexpected result");
     });
 
+    // https://github.com/HarryR/ethsnarks/blob/master/test/TestMiMC.sol
+    it("should hash value correctly in solidity", async () => {
+        const res = await mimc.methods.MiMCpe7(1,2).call();
+        const res2 = await mimcjs.hash(1,2,91);
+
+        assert.equal(res.toString(), res2.toString());
+    });
+
     // // https://github.com/HarryR/ethsnarks/blob/master/test/TestMiMC.sol
     // it("should hash value correctly in solidity", async () => {
     //     var m = [   BigInt(3703141493535563179657531719960160174296085208671919316200479060314459804651).toString(),
