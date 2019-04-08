@@ -75,17 +75,17 @@ contract("MiMC7 Hashing", async accounts => {
         const jsF = mimcjs.hash(c, d);
         assert.equal(solF.toString(), jsF.toString());
         
+        // TODO: parse it with ying tong's MiMCMerkle.js after merge and assert values
         // g = hash(hash(a, b), hash(c, d))
         const solG = await mimc.methods.MiMCpe7(solE, solF).call();
         const jsG = mimcjs.hash(jsE, jsF);
         assert.equal(solG.toString(), jsG.toString());
 
-        // TODO: parse it with ying tong's MiMCMerkle.js after merge
-        // g = hash(hash(hash(hash(IV, a), b), c), d)
-        const hashG = await solidityHash(await solidityHash(await solidityHash(await solidityHash(mimcjs.getIV(), a), b), c), d);
+        // multihash = hash(hash(hash(hash(IV, a), b), c), d)
+        const multiHashDecomposition = await solidityHash(await solidityHash(await solidityHash(await solidityHash(mimcjs.getIV(), a), b), c), d);
+        const multiHashJS = mimcjs.multiHash([a, b, c, d]);
 
-        const multihashG = mimcjs.multiHash([a, b, c, d]);
-        assert.equal(multihashG, hashG, "wrong multihash");
-        assert.notEqual(multihashG, jsG);
+        assert.equal(multiHashDecomposition, multiHashJS, "wrong multihash");
+        assert.notEqual(multiHashJS, jsG);
     });
 });
