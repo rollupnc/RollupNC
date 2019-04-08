@@ -34,19 +34,21 @@ contract("MiMC7 Hashing", async accounts => {
         const k = BigInt(918403109389145570117360101535982733651217667914747213867238065296420114726).toString();
         
         const jsExpected = mimcjs.hash(m, k);
-        const solidityResult = await mimc.methods.MiMCpe7(m, k).call();
+        const solidityResult = await solidityHash(m, k);
 
         assert.equal(solidityResult.toString(), jsExpected.toString(), "Unexpected result");
     });
 
     it("Should hash value correctly in solidity", async () => {
-        const res = await mimc.methods.MiMCpe7(1,2).call();
+        const res = await solidityHash(1,2);
         const res2 = await mimcjs.hash(1,2,91);
 
         assert.equal(res.toString(), res2.toString());
     });
 
-    
+    async function solidityHash(val1, val2) {
+        return await mimc.methods.MiMCpe7(val1.toString(), val2.toString()).call();
+    }
     /*
 
               G
@@ -82,13 +84,15 @@ contract("MiMC7 Hashing", async accounts => {
 
         // TODO: parse it with ying tong's MiMCMerkle.js after merge
         // g = hash(hash(hash(hash(IV, a), b), c), d)
-        const hashG = mimcjs.hash(mimcjs.hash(mimcjs.hash(mimcjs.hash(mimcjs.getIV(), a), b), c), d);
+        const hashG = await solidityHash(await solidityHash(await solidityHash(await solidityHash(mimcjs.getIV(), a), b), c), d);
 
         // multihash is crashing the whole test, comment it out to see the result of the rest
         const multihashG = mimcjs.multiHash([a, b, c, d]);
         assert.equal(multihashG, hashG, "wrong multihash");
         assert.notEqual(multihashG, jsG);
     });
+
+
 
     // // https://github.com/HarryR/ethsnarks/blob/master/test/TestMiMC.sol
     // it("should hash value correctly in solidity", async () => {
