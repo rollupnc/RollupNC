@@ -1,4 +1,3 @@
-const MiMC = artifacts.require("MiMC");
 const mimcjs = require("../circomlib/src/mimc7.js");
 const mimcGenContract = require("../circomlib/src/mimc_gencontract.js");
 
@@ -21,7 +20,7 @@ contract("MiMC7 Hashing", async accounts => {
         });
     });
 
-    it("should return a hash", async () => {
+    it("Should return a hash", async () => {
         const input = [2];
         const key = 22;
 
@@ -30,7 +29,7 @@ contract("MiMC7 Hashing", async accounts => {
         // console.log(result.toString());
     });
 
-    it("should hash value correctly in js", async () => {
+    it("Should hash value correctly in js", async () => {
         const m = BigInt(3703141493535563179657531719960160174296085208671919316200479060314459804651).toString();
         const k = BigInt(918403109389145570117360101535982733651217667914747213867238065296420114726).toString();
         

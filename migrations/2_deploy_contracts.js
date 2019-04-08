@@ -9,11 +9,9 @@ module.exports = function(deployer, accounts) {
     deployer.deploy(Migrations);
     deployer.deploy(Pairing);
     deployer.link(Pairing, [TransferVerifier,WithdrawVerifier]);
-    deployer.deploy(MiMC).then(() => {
       deployer.deploy(TransferVerifier).then(() => {
         return deployer.deploy(WithdrawVerifier);
       }).then(() => {
         return deployer.deploy(RollupNC, TransferVerifier.address, WithdrawVerifier.address);
       });
-    });
   };
