@@ -5,6 +5,6 @@ const RollupNC = artifacts.require("RollupNC");
 */ 
 
 contract("RollupNC Deposit", async accounts => {
-  it("should reject invalid withdrawals", async () => {
+  it("Lorem ipsum dolor sit amet", async () => {
   });
 });
