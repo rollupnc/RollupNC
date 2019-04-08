@@ -32,19 +32,19 @@ contract("MiMC7 Hashing", async accounts => {
         const k = BigInt(918403109389145570117360101535982733651217667914747213867238065296420114726).toString();
         
         const jsExpected = mimcjs.hash(m, k);
-        const solidityResult = await solidityHash(m, k);
+        const solidityResult = await solidityMiMCHash(m, k);
 
         assert.equal(solidityResult.toString(), jsExpected.toString(), "Unexpected result");
     });
 
     it("Should hash value correctly in solidity", async () => {
-        const res = await solidityHash(1,2);
+        const res = await solidityMiMCHash(1,2);
         const res2 = await mimcjs.hash(1,2,91);
 
         assert.equal(res.toString(), res2.toString());
     });
 
-    async function solidityHash(val1, val2) {
+    async function solidityMiMCHash(val1, val2) {
         return mimc.methods.MiMCpe7(val1.toString(), val2.toString()).call();
     }
     /*
@@ -67,22 +67,22 @@ contract("MiMC7 Hashing", async accounts => {
         const c = BigInt(894).toString()
         const d = BigInt(354).toString()
 
-        const solE = await mimc.methods.MiMCpe7(a, b).call();
+        const solE = await solidityMiMCHash(a, b);
         const jsE = mimcjs.hash(a, b);
         assert.equal(solE.toString(), jsE.toString());
         
-        const solF = await mimc.methods.MiMCpe7(c, d).call();
+        const solF = await solidityMiMCHash(c, d);
         const jsF = mimcjs.hash(c, d);
         assert.equal(solF.toString(), jsF.toString());
         
         // TODO: parse it with ying tong's MiMCMerkle.js after merge and assert values
         // g = hash(hash(a, b), hash(c, d))
-        const solG = await mimc.methods.MiMCpe7(solE, solF).call();
+        const solG = await solidityMiMCHash(solE, solF);
         const jsG = mimcjs.hash(jsE, jsF);
         assert.equal(solG.toString(), jsG.toString());
 
         // multihash = hash(hash(hash(hash(IV, a), b), c), d)
-        const multiHashDecomposition = await solidityHash(await solidityHash(await solidityHash(await solidityHash(mimcjs.getIV(), a), b), c), d);
+        const multiHashDecomposition = await solidityMiMCHash(await solidityMiMCHash(await solidityMiMCHash(await solidityMiMCHash(mimcjs.getIV(), a), b), c), d);
         const multiHashJS = mimcjs.multiHash([a, b, c, d]);
 
         assert.equal(multiHashDecomposition, multiHashJS, "wrong multihash");
