@@ -39,12 +39,47 @@ contract("MiMC7 Hashing", async accounts => {
         assert.equal(solidityResult.toString(), jsExpected.toString(), "Unexpected result");
     });
 
-    // https://github.com/HarryR/ethsnarks/blob/master/test/TestMiMC.sol
-    it("should hash value correctly in solidity", async () => {
+    it("Should hash value correctly in solidity", async () => {
         const res = await mimc.methods.MiMCpe7(1,2).call();
         const res2 = await mimcjs.hash(1,2,91);
 
         assert.equal(res.toString(), res2.toString());
+    });
+
+    
+    /*
+
+              G
+            E    F
+          A  B  C  D
+
+        E = hash(A, B)
+        F = hash(C, D)
+        G = hash(E, F)
+
+        multihash(a,b,c,d) == G
+    */
+    it("Should parse trees the same way as the multihash", async () => {
+        const a = BigInt(123).toString()
+        const b = BigInt(564).toString()
+        const c = BigInt(894).toString()
+        const d = BigInt(354).toString()
+
+        const solE = await mimc.methods.MiMCpe7(a,b).call();
+        const jsE = mimcjs.hash(a,b,91);
+        assert.equal(solE.toString(), jsE.toString());
+        
+        const solF = await mimc.methods.MiMCpe7(c,d).call();
+        const jsF = mimcjs.hash(c,d,91);
+        assert.equal(solF.toString(), jsF.toString());
+        
+        const solG = await mimc.methods.MiMCpe7(solE,solF).call();
+        const jsG = mimcjs.hash(jsE,jsF,91);
+        assert.equal(solG.toString(), jsG.toString());
+
+        // TODO: parse it with ying tong's MiMCMerkle.js after merge
+        const multihashG = "2759747462699562558935982208313030995393157958724403873977193283477287402170"
+        assert.equal(multihashG, jsG, "wrong multihash")
     });
 
     // // https://github.com/HarryR/ethsnarks/blob/master/test/TestMiMC.sol
