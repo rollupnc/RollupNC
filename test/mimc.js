@@ -1,35 +1,41 @@
 const MiMC = artifacts.require("MiMC");
 const mimcjs = require("../circomlib/src/mimc7.js");
+const mimcGenContract = require("../circomlib/src/mimc_gencontract.js");
 
 /*
     Here we want to test the hashing of the MIMC7 contract
 */ 
 
 contract("MiMC7 Hashing", async accounts => {
-    let mimc7;
+    let mimc;
+    const SEED = "mimc";
 
-    before(async () => {
-        mimc7 = await MiMC.deployed();
-    })
+    it("Should deploy the contract", async () => {
+        const C = new web3.eth.Contract(mimcGenContract.abi);
+
+        mimc = await C.deploy({
+            data: mimcGenContract.createCode(SEED, 91)
+        }).send({
+            gas: 1500000,
+            from: accounts[0]
+        });
+    });
 
     it("should return a hash", async () => {
         const input = [2];
         const key = 22;
 
-        let result = await mimc7.Hash(input, key);
+        let result = await mimc.methods.MiMCpe7(input, key).call();
         // console.log(result);
         // console.log(result.toString());
     });
 
     it("should hash value correctly in js", async () => {
-        var m = [   BigInt(3703141493535563179657531719960160174296085208671919316200479060314459804651).toString() ];
-
-        console.log("here")
-        console.log(m.toString());
+        const m = BigInt(3703141493535563179657531719960160174296085208671919316200479060314459804651).toString();
         const k = BigInt(918403109389145570117360101535982733651217667914747213867238065296420114726).toString();
         
-        const jsExpected = mimcjs.hash(m[0], k);
-        const solidityResult = await mimc7.Hash(m, k);
+        const jsExpected = mimcjs.hash(m, k);
+        const solidityResult = await mimc.methods.MiMCpe7(m, k).call();
 
         assert.equal(solidityResult.toString(), jsExpected.toString(), "Unexpected result");
     });
