@@ -47,7 +47,7 @@ contract("MiMC7 Hashing", async accounts => {
     });
 
     async function solidityHash(val1, val2) {
-        return await mimc.methods.MiMCpe7(val1.toString(), val2.toString()).call();
+        return mimc.methods.MiMCpe7(val1.toString(), val2.toString()).call();
     }
     /*
 
@@ -86,7 +86,6 @@ contract("MiMC7 Hashing", async accounts => {
         // g = hash(hash(hash(hash(IV, a), b), c), d)
         const hashG = await solidityHash(await solidityHash(await solidityHash(await solidityHash(mimcjs.getIV(), a), b), c), d);
 
-        // multihash is crashing the whole test, comment it out to see the result of the rest
         const multihashG = mimcjs.multiHash([a, b, c, d]);
         assert.equal(multihashG, hashG, "wrong multihash");
         assert.notEqual(multihashG, jsG);
