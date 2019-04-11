@@ -1,14 +1,29 @@
 pragma solidity >=0.4.21;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import './MerkleTree.sol';
 import './TransferVerifier.sol';
 import './WithdrawVerifier.sol';
 
 contract RollupNC {        
+    using MerkleTree for MerkleTree.Data;
+
     TransferVerifier public transferVerifier;
     WithdrawVerifier public withdrawVerifier;
 
+    MerkleTree.Data mTree;
     uint256 depositMerkleRoot;
+
+    struct PendingDeposit {
+        uint pubKey_x;
+        uint pubKey_y;
+        uint token;
+        uint balance;
+        uint nonce;
+    }
+
+    mapping (uint => PendingDeposit) pendingDeposits;
+    uint pendingDepositCount;
 
     uint constant registerTokenCost = 1 ether;
     mapping (address => bool) isTokenRegistered;
