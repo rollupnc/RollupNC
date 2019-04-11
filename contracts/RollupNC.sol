@@ -33,7 +33,7 @@ contract RollupNC {
     uint256 merkleRoot;
     address operator;
     
-    event DepositAdded(address indexed sender, uint indexed pubKey, address indexed tokenAddr, uint amount);
+    event DepositAdded(address indexed sender, uint indexed pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce);
     event DepositRootUpdated(uint256 indexed newRoot, uint256 indexed oldRoot);
     event TokenRegistered(address tokenAddr, uint tokenIndex);
 
@@ -95,15 +95,14 @@ contract RollupNC {
     }
 
     /// @notice Deposit ERC20 tokens into contract and alert Operator. Tokens must be previously approved for this contract by the sender.
-    /// @param tokenAddr Address of ERC20 contract for token to be deposited
-    /// @param amount Amount of tokens to deposit
-    /// @param pubKey rollup public key to associate with this deposit
     /// TODO: We'll want to check signature of rollup pubkey to verify ownership?
-    function depositTokens(address tokenAddr, uint amount, uint pubKey) public {
-        require(IERC20(tokenAddr).allowance(msg.sender, address(this)) >= amount, "Not enough allowance");
-        require(IERC20(tokenAddr).transferFrom(msg.sender, address(this), amount), "Token transfer failed");
+    function depositTokens(uint pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce) public {
+        IERC20 tokenContract = IERC20(tokenRegistry[token]);
+        
+        require(tokenContract.allowance(msg.sender, address(this)) >= balance, "Not enough allowance");
+        require(tokenContract.transferFrom(msg.sender, address(this), balance), "Token transfer failed");
 
-        emit DepositAdded(msg.sender, pubKey, tokenAddr, amount);
+        emit DepositAdded(msg.sender, pubKey_x, pubKey_y, token, balance, nonce);
     }
     /// @notice Operator publishes deposits root after incorporating new deposits.
     /// @dev Will replace params these with the proper inputs and proof.
