@@ -10,11 +10,17 @@ contract RollupNC {
 
     uint256 depositMerkleRoot;
 
+    uint constant registerTokenCost = 1 ether;
+    mapping (address => bool) isTokenRegistered;
+    mapping (uint =>  address) tokenRegistry;
+    uint tokenRegistryIndex;
+
     uint256 merkleRoot;
     address operator;
     
     event DepositAdded(address indexed sender, uint indexed pubKey, address indexed tokenAddr, uint amount);
     event DepositRootUpdated(uint256 indexed newRoot, uint256 indexed oldRoot);
+    event TokenRegistered(address tokenAddr, uint tokenIndex);
 
     constructor(
         address _transferVerifierContractAddr,
@@ -55,6 +61,22 @@ contract RollupNC {
         
         //update merkle root
         merkleRoot = input[0];
+    }
+
+    /// @notice Add token contract to registry. "Listing" a token in this manner costs Ether.
+    /// @param _tokenAddr Address of ERC20 contract to add.
+    /// @return Index of token in registry
+    function registerToken(address _tokenAddr) public payable returns (uint) {
+        require(msg.value == registerTokenCost, "Must send appropriate ether amount");
+        require(isTokenRegistered[_tokenAddr] == false, "Token address is already registered");
+        require(tokenRegistryIndex + 1 > tokenRegistryIndex, "Overflow, too many tokens.");
+
+        tokenRegistry[tokenRegistryIndex] == _tokenAddr;
+        isTokenRegistered[_tokenAddr] == true;
+
+        emit TokenRegistered(_tokenAddr, tokenRegistryIndex);
+        
+        tokenRegistryIndex = tokenRegistryIndex + 1;
     }
 
     /// @notice Deposit ERC20 tokens into contract and alert Operator. Tokens must be previously approved for this contract by the sender.
