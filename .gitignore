@@ -1,4 +1,6 @@
 node_modules/
 .secret
-proving_key.json
-verification_key.json
+tokens_transfer/proving_key.json
+tokens_transfer/verification_key.json
+withdraw/proving_key.json
+withdraw/verification_key.json
