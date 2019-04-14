@@ -14,7 +14,7 @@ module.exports = {
                     amounts[i],
                     token_types[i]                    
                 ])
-                accounts.push(txArr);
+                txArr.push(tx);
             }
         } else {
             txArr = mimcjs.multiHash([

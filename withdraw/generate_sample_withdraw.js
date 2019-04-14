@@ -40,9 +40,6 @@ const alice_leaf = balanceLeaf.generateBalanceLeaf(
     token_types, balances, nonces
 )
 
-// Alice signs old leaf
-const signature = eddsa.signMiMC(prvKeys, alice_leaf);
-
 // generate balance tree
 console.log("The zero account is permanently at the zero index of the balance tree.")
 const balance_path_zero = [alice_leaf,0,0,0,0]
@@ -75,6 +72,10 @@ const withdrawTxLeaf = txLeaf.generateTxLeaf(
     transfer_amt, transfer_type
 )
 
+// Alice signs tx leaf
+const signature = eddsa.signMiMC(prvKeys, withdrawTxLeaf);
+
+// Merkle path and position in tx tree
 const tx_path = [0,0,0];
 const tx_pos = [0,0,0];
 
@@ -84,6 +85,7 @@ var tx_root = merkle.rootFromLeafAndPath(
 console.log("transactions tree root: ", tx_root)
 
 // new zero leaf is the same as old zero leaf
+// so i'm not going to recompute that
 
 // new Alice leaf
 const new_alice_leaf = balanceLeaf.generateBalanceLeaf(
