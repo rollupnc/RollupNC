@@ -1,5 +1,6 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
 const mimcGenContract = require("../circomlib/src/mimc_gencontract.js");
+let ethSnarksMiMC = artifacts.require("MiMC");
 
 /*
     Here we want to test the hashing of the MIMC7 contract
@@ -9,6 +10,10 @@ contract("MiMC7 Hashing", async accounts => {
     let mimc;
     const SEED = "mimc";
 
+    before(async () => {
+        ethSnarksMiMC = await ethSnarksMiMC.deployed();
+    })
+    
     it("Should deploy the contract", async () => {
         const C = new web3.eth.Contract(mimcGenContract.abi);
 
@@ -40,8 +45,10 @@ contract("MiMC7 Hashing", async accounts => {
     it("Should hash value correctly in solidity", async () => {
         const res = await solidityMiMCHash(1,2);
         const res2 = await mimcjs.hash(1,2,91);
+        const res3 = await ethSnarksMiMC.Hash( [1, 2] );
 
         assert.equal(res.toString(), res2.toString());
+        // assert.equal(res2.toString(), res3.toString());
     });
 
     async function solidityMiMCHash(val1, val2) {
