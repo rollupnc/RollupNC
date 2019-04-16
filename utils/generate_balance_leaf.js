@@ -1,6 +1,18 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
+const account = require("../utils/generate_accounts.js");
 
 module.exports = {
+
+    getZeroLeaf: function(){
+        leaf = {}
+        let zeroAddress = account.zeroAddress()
+        leaf['pubKey_x'] = zeroAddress[0];
+        leaf['pubKey_y'] = zeroAddress[0];
+        leaf['balance'] = 0;
+        leaf['nonce'] = 0;
+        leaf['token_type'] = 0;
+        return leaf;
+    },
 
     generateBalanceLeafArray: function(accts_x, accts_y, token_types, balances, nonces){
         if (Array.isArray(accts_x)){

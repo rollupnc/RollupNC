@@ -60,10 +60,13 @@ template Main(n,m) {
 
     var NONCE_MAX_VALUE = 100;
 
-    // constant zero address (EdDSA public key derived from "0x00000..." private key)
-    var ZERO_ADDRESS_X = 14693049754975295088601889058423528175209346965458018166282702079546899756033;
-    var ZERO_ADDRESS_Y = 2567899521534891726544025877709012721621806025758268445301366801784237662454;
+    // // constant zero address (EdDSA public key derived from "0x00000..." private key)
+    // var ZERO_ADDRESS_X = 14693049754975295088601889058423528175209346965458018166282702079546899756033;
+    // var ZERO_ADDRESS_Y = 2567899521534891726544025877709012721621806025758268445301366801784237662454;
 
+    // constant zero address 
+    var ZERO_ADDRESS_X = 0000000000000000000000000000000000000000000000000000000000000000000000000000;
+    var ZERO_ADDRESS_Y = 00000000000000000000000000000000000000000000000000000000000000000000000000000;
 
     // transactions existence check
 
@@ -101,6 +104,7 @@ template Main(n,m) {
     old_hash_from.in[2] <== token_balance_from;
     old_hash_from.in[3] <== nonce_from;
     old_hash_from.in[4] <== token_type_from;
+
 
     // hash of first two entries in balance Merkle proof for sender account
     component old_merkle_from[n-1];

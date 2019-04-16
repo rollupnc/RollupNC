@@ -9,16 +9,12 @@ const bigInt = snarkjs.bigInt;
 module.exports = {
     
     generatePrvKeys: function(n){
-        if (n > 1){
-            var prvKeys = [];
-            for (i = 1; i < n+1; i++) {
-                var prvKey = Buffer.from(
-                    i.toString().padStart(64,'0'), "hex");
-                // console.log(prvKey);
-                prvKeys.push(prvKey);
-            }
-        }  else {
-            prvKeys = Buffer.from("1".padStart(64,'0'), "hex");
+        var prvKeys = [];
+        for (i = 1; i < n+1; i++) {
+            var prvKey = Buffer.from(
+                i.toString().padStart(64,'0'), "hex");
+            // console.log(prvKey);
+            prvKeys.push(prvKey);
         }
         return prvKeys;  
     },
@@ -31,7 +27,7 @@ module.exports = {
                 pubKeys.push(pubKey);
             }
         } else {
-            pubKeys = eddsa.prv2pub(prvKeys);
+            console.log('please enter arguments as an array.')
         }
         return pubKeys; 
     },

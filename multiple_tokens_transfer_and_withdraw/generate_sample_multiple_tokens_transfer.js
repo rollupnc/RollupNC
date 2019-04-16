@@ -15,11 +15,10 @@ const DEPTH = 6;
 
 // let's do two transfers and a withdraw :-)
 
-// generate zero account with the following parameters
-const zero_address = account.zeroAddress();
-const zero_token_type = 0;
-const zero_balance = 0;
-const zero_nonce = 0; 
+// generate zero leaf
+const zeroAddress = account.zeroAddress()
+const zeroLeaf = balanceLeaf.getZeroLeaf()
+const zeroLeafHash = balanceLeaf.hashBalanceLeafArray([zeroLeaf])
 
 // initialise Alice, Bob, Charlie accounts
 const prvKeys = account.generatePrvKeys(3);
@@ -27,15 +26,21 @@ const pubKeys = account.generatePubKeys(prvKeys);
 const pubKeysX = account.getPubKeysX(pubKeys);
 const pubKeysY = account.getPubKeysY(pubKeys);
 
-const tokenTypes = [10,10,10];
-const balances = [1000,1000,0];
-const nonces = [0,0,0];
+const tokenTypes = [10,10,10]; //each account's token type
+const balances = [1000,1000,0]; // Alice 1000, Bob 1000, Charlie 0
+const nonces = [0,0,0]; //initialise each account to 0 nonce
 
-const balanceLeafArray = balanceLeaf.generateBalanceLeafArray(
+const balanceLeaves = balanceLeaf.generateBalanceLeafArray(
     pubKeysX, pubKeysY, tokenTypes, balances, nonces
 );
 
-const balanceLeafHashArray = balanceLeaf.hashBalanceLeafArray(balanceLeafArray)
+const balanceLeafHashes = balanceLeaf.hashBalanceLeafArray(balanceLeaves)
+
+const balanceArray = Array(2**DEPTH).fill(0)
+balanceArray[0] = zeroLeafHash[0]
+for (i = 1; i <= balanceLeafHashes.length; i++){
+    balanceArray[i] = balanceLeafHashes[i - 1]
+}
 
 const balancePos = merkle.generateMerklePos(0,4, DEPTH-1)
 
@@ -44,8 +49,8 @@ const balancePos = merkle.generateMerklePos(0,4, DEPTH-1)
 // Charlie withdraws 1000
 const transactions = txLeaf.generateTxLeafArray(
     pubKeysX, pubKeysY, // from_x, from_y
-    [pubKeysX[1], pubKeysX[2], zero_address[0]], //to_x
-    [pubKeysY[1], pubKeysY[2], zero_address[1]], //to_y
+    [pubKeysX[1], pubKeysX[2], zeroAddress[0]], //to_x
+    [pubKeysY[1], pubKeysY[2], zeroAddress[1]], //to_y
     [500,1000,1000],
     [10,10,10]
 )
@@ -68,35 +73,32 @@ const txRoot = merkle.rootFromLeafArray(txArray)
 const txPos = merkle.generateMerklePos(0,3, TX_DEPTH-1)
 
 // process first transaction
-let [new_alice_leaf, new_bob_leaf] = update.processTx(
+var [new_alice_leaf, new_bob_leaf] = update.processTx(
     transactions[0], 
-    balanceLeafArray[0],
-    balanceLeafArray[1],
+    balanceLeaves[0],
+    balanceLeaves[1],
     signatures[0])
 
-console.log(new_alice_leaf)
-
-// const new_alice_leaf = balanceLeaf.generateBalanceLeaf(
-//     pubKeysX[0], 
-//     pubKeysY[0], 
-//     10,
-//     1000 - 500, // decrease Alice's balance by 500
-//     1 // increase Alice's nonce by 1
-// )
-
-// const new_bob_leaf = balanceLeaf.generateBalanceLeaf(
-//     pubKeysX[1], 
-//     pubKeysY[1], 
-//     10,
-//     1000 + 500, // increase Bob's balance by 500
-//     0 // Bob's nonce doesn't change
-// )
-
 // process second transaction
-
+var [new_bob_leaf, new_charlie_leaf] = update.processTx(
+    transactions[1], 
+    new_bob_leaf,
+    balanceLeaves[2],
+    signatures[1])
 
 // process third transaction
+var [new_charlie_leaf, new_zero_leaf] = update.processTx(
+    transactions[2], 
+    new_charlie_leaf,
+    zeroLeaf,
+    signatures[2])
 
+// update balance array
+var newBalanceArray = Array(2**DEPTH).fill(0)
+newBalanceArray[0] = balanceLeaf.hashBalanceLeafArray([new_zero_leaf])[0];
+newBalanceArray[1] = balanceLeaf.hashBalanceLeafArray([new_alice_leaf])[0];
+newBalanceArray[2] = balanceLeaf.hashBalanceLeafArray([new_bob_leaf])[0];
+newBalanceArray[3] = balanceLeaf.hashBalanceLeafArray([new_charlie_leaf])[0];
 
 // const new_hash_leaf_from = mimcjs.multiHash([
 //   pubKey_from[0],
