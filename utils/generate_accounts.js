@@ -64,9 +64,7 @@ module.exports = {
     },
 
     zeroAddress: function(){
-        const zeroPrvKey = Buffer.from("0".padStart(64,'0'), "hex");
-        const zeroPubKey = eddsa.prv2pub(zeroPrvKey);
-        return zeroPubKey;
+        return ["0".padStart(76,'0'), "0".padStart(77,'0')]
     }
 
 }

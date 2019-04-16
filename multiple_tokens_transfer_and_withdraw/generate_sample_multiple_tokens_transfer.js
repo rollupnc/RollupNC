@@ -7,6 +7,7 @@ const account = require("../utils/generate_accounts.js");
 const balanceLeaf = require("../utils/generate_balance_leaf.js");
 const txLeaf = require("../utils/generate_tx_leaf.js");
 const merkle = require("../utils/MiMCMerkle.js")
+const update = require("../utils/update.js")
 const bigInt = snarkjs.bigInt;
 
 const TX_DEPTH = 4;
@@ -30,32 +31,36 @@ const tokenTypes = [10,10,10];
 const balances = [1000,1000,0];
 const nonces = [0,0,0];
 
-const accounts = balanceLeaf.generateBalanceLeaf(
+const balanceLeafArray = balanceLeaf.generateBalanceLeafArray(
     pubKeysX, pubKeysY, tokenTypes, balances, nonces
 );
+
+const balanceLeafHashArray = balanceLeaf.hashBalanceLeafArray(balanceLeafArray)
 
 const balancePos = merkle.generateMerklePos(0,4, DEPTH-1)
 
 // Alice -> Bob 500
 // Bob -> Charlie 1000
 // Charlie withdraws 1000
-const transactions = txLeaf.generateTxLeaf(
-    pubKeysX, pubKeysY, 
-    [pubKeysX[1], pubKeysX[2], zero_address[0]],
-    [pubKeysY[1], pubKeysY[2], zero_address[1]],
+const transactions = txLeaf.generateTxLeafArray(
+    pubKeysX, pubKeysY, // from_x, from_y
+    [pubKeysX[1], pubKeysX[2], zero_address[0]], //to_x
+    [pubKeysY[1], pubKeysY[2], zero_address[1]], //to_y
     [500,1000,1000],
     [10,10,10]
 )
 
+const txHashes = txLeaf.hashTxLeafArray(transactions)
+
 const signatures = [
-    eddsa.signMiMC(prvKeys[0], transactions[0]),
-    eddsa.signMiMC(prvKeys[1], transactions[1]),
-    eddsa.signMiMC(prvKeys[2], transactions[2])
+    eddsa.signMiMC(prvKeys[0], txHashes[0]),
+    eddsa.signMiMC(prvKeys[1], txHashes[1]),
+    eddsa.signMiMC(prvKeys[2], txHashes[2])
 ]
 
 const txArray = Array(2**TX_DEPTH).fill(0)
-for (i = 0; i < transactions.length; i++){
-    txArray[i] = transactions[i]
+for (i = 0; i < txHashes.length; i++){
+    txArray[i] = txHashes[i]
 }
 
 const txRoot = merkle.rootFromLeafArray(txArray)
@@ -63,10 +68,32 @@ const txRoot = merkle.rootFromLeafArray(txArray)
 const txPos = merkle.generateMerklePos(0,3, TX_DEPTH-1)
 
 // process first transaction
+let [new_alice_leaf, new_bob_leaf] = update.processTx(
+    transactions[0], 
+    balanceLeafArray[0],
+    balanceLeafArray[1],
+    signatures[0])
 
+console.log(new_alice_leaf)
 
+// const new_alice_leaf = balanceLeaf.generateBalanceLeaf(
+//     pubKeysX[0], 
+//     pubKeysY[0], 
+//     10,
+//     1000 - 500, // decrease Alice's balance by 500
+//     1 // increase Alice's nonce by 1
+// )
+
+// const new_bob_leaf = balanceLeaf.generateBalanceLeaf(
+//     pubKeysX[1], 
+//     pubKeysY[1], 
+//     10,
+//     1000 + 500, // increase Bob's balance by 500
+//     0 // Bob's nonce doesn't change
+// )
 
 // process second transaction
+
 
 // process third transaction
 

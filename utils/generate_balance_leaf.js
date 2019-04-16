@@ -1,30 +1,44 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
 
 module.exports = {
-    
-    generateBalanceLeaf: function(accts_x, accts_y, token_types, balances, nonces){
+
+    generateBalanceLeafArray: function(accts_x, accts_y, token_types, balances, nonces){
         if (Array.isArray(accts_x)){
-            accounts = [];
+            balanceLeafArray = [];
             for (i = 0; i < accts_x.length; i++){
-                accts = mimcjs.multiHash([
-                    accts_x[i],
-                    accts_y[i],
-                    balances[i],
-                    nonces[i],
-                    token_types[i]                    
-                ])
-                accounts.push(accts);
+                leaf = {}
+                leaf['pubKey_x'] = accts_x[i];
+                leaf['pubKey_y'] = accts_y[i];
+                leaf['balance'] = balances[i];
+                leaf['nonce'] = nonces[i];
+                leaf['token_type'] = token_types[i];
+                balanceLeafArray.push(leaf);
             }
+            return balanceLeafArray;
         } else {
-            accounts = mimcjs.multiHash([
-                accts_x,
-                accts_y,
-                balances,
-                nonces,
-                token_types
-            ])
+            console.log('please enter values as arrays.')
         }
-        return accounts;
+
+    },
+
+    hashBalanceLeafArray: function(leafArray){
+        if (Array.isArray(leafArray)){
+            balanceLeafHashArray = [];
+            for (i = 0; i < leafArray.length; i++){
+                leafHash = mimcjs.multiHash([
+                    leafArray[i]['pubKey_x'].toString(),
+                    leafArray[i]['pubKey_y'].toString(),
+                    leafArray[i]['balance'].toString(),
+                    leafArray[i]['nonce'].toString(),
+                    leafArray[i]['token_type'].toString()
+                ])
+                balanceLeafHashArray.push(leafHash)
+            }
+            return balanceLeafHashArray
+        } else {
+            console.log('please enter values as arrays.')
+        }
     }
+    
 }
 
