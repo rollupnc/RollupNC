@@ -1,0 +1,14 @@
+echo "===> Compiling circuit" 
+time circom tokens_transfer.circom  -o tokens_transfer.json
+echo "===> Performing trusted 1 party setup"
+time snarkjs setup -c tokens_transfer.json --protocol groth
+echo "===> Preparing inputs"
+node generate_sample_tokens_transfer.js
+echo "===> Calculating witness"
+time snarkjs calculatewitness -c tokens_transfer.json -i tokens_transfer_input.json
+echo "===> Generate proof"
+time snarkjs proof
+echo "===> Verify Proof"
+time snarkjs verify
+echo "===> Generate solidity contract"
+time snarkjs generateverifier

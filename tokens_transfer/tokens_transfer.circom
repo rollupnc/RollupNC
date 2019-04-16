@@ -52,7 +52,7 @@ template Main(n,m) {
     tx_merkle_root[0] = MultiMiMC7(2,91);
     tx_merkle_root[0].in[0] <== tx.out - paths2tx_root_pos[0]* (tx.out - paths2tx_root[0]);
     tx_merkle_root[0].in[1] <== paths2tx_root[0] - paths2tx_root_pos[0]* (paths2tx_root[0] - tx.out);
-    
+     
     for (i=1; i<m-1; i++){
     	tx_merkle_root[i] = MultiMiMC7(2,91);
     	tx_merkle_root[i].in[0] <== tx_merkle_root[i-1].out - paths2tx_root_pos[i]* (tx_merkle_root[i-1].out - paths2tx_root[i]);
@@ -77,13 +77,13 @@ template Main(n,m) {
     	old_merkle_from[i] = MultiMiMC7(2,91);
     	old_merkle_from[i].in[0] <== old_merkle_from[i-1].out - paths2root_from_pos[i]* (old_merkle_from[i-1].out - paths2old_root_from[i]);
     	old_merkle_from[i].in[1] <== paths2old_root_from[i] - paths2root_from_pos[i]* (paths2old_root_from[i] - old_merkle_from[i-1].out);
-    	}
+    	}       
 
     current_state === old_merkle_from[n-2].out;
 
     component old_hash_to = MultiMiMC7(4,91);
     old_hash_to.in[0] <== to;
-    old_hash_to.in[1] <== token_balance_to;
+    old_hash_to.in[1] <== toke n_balance_to;
     old_hash_to.in[2] <== nonce_to;
     old_hash_to.in[3] <== token_type_to;
 
