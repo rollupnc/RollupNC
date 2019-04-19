@@ -1,18 +1,19 @@
 pragma solidity >=0.4.21;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './MerkleTree.sol';
 import './TransferVerifier.sol';
 import './WithdrawVerifier.sol';
 
-contract RollupNC {        
+contract RollupNC {      
+    using SafeMath for uint;  
     using MerkleTree for MerkleTree.Data;
 
     TransferVerifier public transferVerifier;
     WithdrawVerifier public withdrawVerifier;
 
-    MerkleTree.Data mTree;
-    uint256 depositMerkleRoot;
+    MerkleTree.Data depositTree;
 
     struct PendingDeposit {
         uint pubKey_x;
@@ -84,23 +85,24 @@ contract RollupNC {
     function registerToken(address _tokenAddr) public payable returns (uint) {
         require(msg.value == registerTokenCost, "Must send appropriate ether amount");
         require(isTokenRegistered[_tokenAddr] == false, "Token address is already registered");
-        require(tokenRegistryIndex + 1 > tokenRegistryIndex, "Overflow, too many tokens.");
 
         tokenRegistry[tokenRegistryIndex] == _tokenAddr;
         isTokenRegistered[_tokenAddr] == true;
 
         emit TokenRegistered(_tokenAddr, tokenRegistryIndex);
         
-        tokenRegistryIndex = tokenRegistryIndex + 1;
+        tokenRegistryIndex = tokenRegistryIndex.add(1);
     }
 
     /// @notice Deposit ERC20 tokens into contract and alert Operator. Tokens must be previously approved for this contract by the sender.
     /// TODO: We'll want to check signature of rollup pubkey to verify ownership?
     function depositTokens(uint pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce) public {
         IERC20 tokenContract = IERC20(tokenRegistry[token]);
-        
+
         require(tokenContract.allowance(msg.sender, address(this)) >= balance, "Not enough allowance");
         require(tokenContract.transferFrom(msg.sender, address(this), balance), "Token transfer failed");
+        
+        addPendingDeposit(pubKey_x, pubKey_y, token, balance, nonce);
 
         emit DepositAdded(msg.sender, pubKey_x, pubKey_y, token, balance, nonce);
     }
@@ -111,5 +113,17 @@ contract RollupNC {
     function publishDeposits(uint256 newMerkleRoot) external onlyOperator {        
         depositMerkleRoot = newMerkleRoot;
         emit DepositRootUpdated(newMerkleRoot, depositMerkleRoot);
+    }
+
+    /// @dev Helper method to add pending deposits
+    function addPendingDeposit(uint pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce) internal {
+        pendingDeposits[pendingDepositCount] = PendingDeposit(pubKey_x, pubKey_y, token, balance, nonce);
+        pendingDepositCount = pendingDepositCount.add(1);
+        depositTree.Insert(abi.encode(pubKey_x, pubKey_y, token, balance, nonce));
+    }
+
+    /// @notice Helper method to add pending deposits
+    function getDepositRoot() public returns (uint256) {
+        
     }
 }
