@@ -4,22 +4,21 @@ const babyJub = require("../circomlib/src/babyjub");
 const snarkjs = require("snarkjs");
 const bigInt = snarkjs.bigInt;
 const createBlakeHash = require("blake-hash");
+const account = require("../utils/generate_accounts.js");
 
 module.exports = {
 
     processTx: function(tx, fromLeaf, toLeaf, signature){
-        const sBuff = eddsa.pruneBuffer(createBlakeHash("blake512").update(prv).digest().slice(0,32));
-        let s = bigInt.leBuff2int(sBuff);
-        const A = babyJub.mulPointEscalar(babyJub.Base8, s.shr(3));
-
-        if (eddsa.verify(txLeaf.hashTxLeafArray([tx]), signature, A)){
+        if (eddsa.verifyMiMC(txLeaf.hashTxLeafArray([tx]), signature, 
+            [fromLeaf['pubKey_x'], fromLeaf['pubKey_y']])){
             newFromLeaf = fromLeaf
             newFromLeaf['balance'] = fromLeaf['balance'] - tx['amount']
             newFromLeaf['nonce'] = fromLeaf['nonce'] + 1
 
             newToLeaf = toLeaf
-            newToLeaf['balance'] = toLeaf['balance'] + tx['amount']
-
+            if (!account.isZeroAddress(toLeaf['pubKey_x'], toLeaf['pubKey_y'])){
+                newToLeaf['balance'] = toLeaf['balance'] + tx['amount']
+            }
             return [newFromLeaf, newToLeaf]
         } else {
             console.log('tx is not signed by sender.')

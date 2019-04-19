@@ -65,6 +65,11 @@ module.exports = {
 
     zeroAddress: function(){
         return ["0".padStart(76,'0'), "0".padStart(77,'0')]
+    },
+
+    isZeroAddress: function(x, y){
+        let zeroAddress = module.exports.zeroAddress();
+        return (x == zeroAddress[0] && y == zeroAddress[1])
     }
 
 }
