@@ -1,5 +1,5 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
-
+const { MerkleTree } = require('merkletreejs')
 
 module.exports = {
 
@@ -22,17 +22,32 @@ module.exports = {
         return root[depth - 2];
     },
 
-    rootFromLeafArray: function(leafArray){
+    // treeFromLeafArray: function(leafArray){
+    //     tree = new MerkleTree(Buffer.from(leafArray), mimcjs.hash);
+    //     return tree;
+    // },
+
+    // proofFromTree: function(leaf, tree){
+    //     proof = tree.getProof(leaf)
+    //     return proof;
+    // },
+
+    // verifyProof: function(proof, leaf, root, tree){
+    //     return tree.verify(proof, leaf, root)
+    // },
+
+    treeFromLeafArray: function(leafArray){
         depth = module.exports.getBase2Log(leafArray.length);
-        treeRoot = Array(depth);
+        tree = Array(depth);
 
-        treeRoot[0] = module.exports.pairwiseHash(leafArray)
+        tree[depth - 1] = module.exports.pairwiseHash(leafArray)
 
-        for (j = 1; j < depth; j++){
-            treeRoot[j] = module.exports.pairwiseHash(treeRoot[j-1])
+        for (j = depth - 2; j >= 0; j--){
+            tree[j] = module.exports.pairwiseHash(tree[j+1])
         }
 
-        return treeRoot[depth-1]
+        // return treeRoot[depth-1]
+        return tree
     },
 
     pairwiseHash: function(array){

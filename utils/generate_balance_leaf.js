@@ -2,6 +2,16 @@ const mimcjs = require("../circomlib/src/mimc7.js");
 
 module.exports = {
 
+    getZeroLeaf: function(){
+        zeroLeaf = {};
+        zeroLeaf['pubKey_x'] = "0".padStart(76,'0');
+        zeroLeaf['pubKey_y'] = "0".padStart(77,'0');
+        zeroLeaf['balance'] = 0;
+        zeroLeaf['nonce'] = 0;
+        zeroLeaf['token_type'] = 0;
+        return zeroLeaf;
+    },
+
     generateBalanceLeafArray: function(accts_x, accts_y, token_types, balances, nonces){
         if (Array.isArray(accts_x)){
             balanceLeafArray = [];
