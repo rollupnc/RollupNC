@@ -4,11 +4,11 @@ import './TransferVerifier.sol';
 import './WithdrawVerifier.sol';
 import './DepositManager.sol';
 
-contract MiMC {
+// interface MiMC {
 
-    function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
+//     function MiMCpe7(uint256,uint256) public pure returns(uint256);
 
-}
+// }
 
 contract RollupNC {
 

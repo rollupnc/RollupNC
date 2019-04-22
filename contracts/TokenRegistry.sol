@@ -5,41 +5,34 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 contract TokenRegistry {      
     using SafeMath for uint;  
     
-    struct Registry {
-        uint registerTokenCost;
-        mapping (address => uint) tokenIds;
-        mapping (uint =>  address) tokenAddresses;
-        uint maxIndex;
-    }
-
-    Registry registry;
+    uint public registerTokenCost;
+    mapping (address => uint) public tokenIds;
+    mapping (uint =>  address) public tokenAddresses;
+    uint public maxIndex;
 
     constructor() public {
-        registry.registerTokenCost = 1 ether;
+        registerTokenCost = 1 ether;
     }
 
     event TokenRegistered(address tokenAddr, uint tokenIndex);
 
     /// @notice Add token contract to registry. Listing a token in this manner costs Ether.
-    function registerToken(address _tokenAddr) public payable {
-        require(msg.value == registry.registerTokenCost, "Must send appropriate ether amount");
+    function registerToken(address _tokenAddr) public payable returns (uint) {
+        require(msg.value == registerTokenCost, "Must send appropriate ether amount");
+        require(tokenIds[_tokenAddr] == 0, "Token address is already registered");
 
-        Registry storage re = registry;
+        maxIndex = maxIndex.add(1); //We start from index 1 such that 0 represents an unregistered token
+        tokenIds[_tokenAddr] = maxIndex;
+        tokenAddresses[maxIndex] = _tokenAddr;
 
-        require(re.tokenIds[_tokenAddr] == 0, "Token address is already registered");
-
-        re.maxIndex = re.maxIndex.add(1); //We start from index 1 such that 0 represents an unregistered token
-        re.tokenIds[_tokenAddr] == re.maxIndex;
-        re.tokenAddresses[registry.maxIndex] == _tokenAddr;
-
-        emit TokenRegistered(_tokenAddr, re.maxIndex);
+        emit TokenRegistered(_tokenAddr, maxIndex);
     }
 
     function getTokenAddressById(uint _tokenIndex) public view returns (address) {
-        return registry.tokenAddresses[_tokenIndex];
+        return tokenAddresses[_tokenIndex];
     }
 
     function getTokenIdByAddress(address _tokenAddr) public view returns (uint) {
-        return registry.tokenIds[_tokenAddr];
+        return tokenIds[_tokenAddr];
     }
 }
