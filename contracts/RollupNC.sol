@@ -4,15 +4,24 @@ import './TransferVerifier.sol';
 import './WithdrawVerifier.sol';
 import './DepositManager.sol';
 
-contract RollupNC {      
+contract MiMC {
+
+    function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
+
+}
+
+contract RollupNC {
+
     TransferVerifier public transferVerifier;
     WithdrawVerifier public withdrawVerifier;
+    // MiMC public mimc; //Rinkeby: 0xbB9da456E4918A450A936dc952F6f5d68EB76F69
 
     DepositManager depositManager;
     uint256 merkleRoot;
     address operator;
     
     constructor(
+        // address _mimcContractAddr,
         address _transferVerifierContractAddr,
         address _withdrawVerifierContractAddr,
         address _depositManagerContractAddr) 
@@ -20,6 +29,8 @@ contract RollupNC {
         transferVerifier = TransferVerifier(_transferVerifierContractAddr);
         withdrawVerifier = WithdrawVerifier(_withdrawVerifierContractAddr);
         depositManager = DepositManager(_depositManagerContractAddr);
+
+        // mimc = MiMC(_mimcContractAddr); 
         operator = msg.sender;
     }
 
@@ -41,17 +52,46 @@ contract RollupNC {
         merkleRoot = input[0];
     }
 
-    function withdraw(
-            uint[2] memory a,
-            uint[2][2] memory b,
-            uint[2] memory c,
-            uint[8] memory input
-    ) public{
+    // function withdraw(
+    //     bytes memory pubkey_from,
+    //     bytes memory pubkey_to,
+    //     uint amount,
+    //     uint token_type_from, 
+    //     uint256 tx_merkle_root, 
+    //     uint256[24] memory proof, 
+    //     bool[24] memory path, 
+    //     uint256 leaf,
+    //     address recipient
+    // ) public {
+    //     require(pubkey_to.equals(bytes("0")));
+    //     require(membership_proof(tx_merkle_root,leaf,proof,path));
 
-        //validate withdraw proof
-        require(withdrawVerifier.verifyProof(a,b,c,input));
+    //     // validate withdraw proof
+    //     require(withdrawVerifier.verifyProof(a,b,c,input));
         
-        //update merkle root
-        merkleRoot = input[0];
-    }
+    //     //update merkle root
+    //     merkleRoot = input[0];
+    // }
+
+    // function membership_proof(
+    //     uint256 root, 
+    //     uint256 leaf, 
+    //     uint256[24] memory proof, 
+    //     bool[24] memory path
+    // ) internal view returns(bool) {
+    //     for (uint i=0;i<proof.length;i++) {
+    //         if (path[i]) {
+    //             leaf = hash(leaf, proof[i]);
+    //         }
+    //         else {
+    //             leaf = hash(proof[i], leaf);
+    //         }
+    //     }
+    //     return(leaf == root);
+    // }
+
+    // function hash(uint256 in_x, uint256 in_k) public view returns(uint256) {
+    //     uint256 res = mimc.MiMCpe7(in_x,in_k);
+    //     return(res);
+    // }
 }

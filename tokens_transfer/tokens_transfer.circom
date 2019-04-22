@@ -1,8 +1,14 @@
-include "../circuits/mimc.circom";
-include "../circuits/eddsamimc.circom";
-include "../circuits/bitify.circom";
+include "../circomlib/circuits/mimc.circom";
+include "../circomlib/circuits/eddsamimc.circom";
+include "../circomlib/circuits/bitify.circom";
 
-template Main(n) {
+template Main(n,m) {
+    signal input tx_root;
+
+    signal private input paths2tx_root[m-1];
+
+    signal private input paths2tx_root_pos[m-1];
+
     signal input current_state;
 
     signal private input paths2old_root_from[n-1];
@@ -34,6 +40,26 @@ template Main(n) {
     var i;
 
     var NONCE_MAX_VALUE = 100;
+
+    // transactions existence check
+    component tx = MultiMiMC7(4,91);
+    tx.in[0] <== pubkey_x;
+    tx.in[1] <== to;
+    tx.in[2] <== amount;
+    tx.in[3] <== token_type_from;
+
+    component tx_merkle_root[m-1];
+    tx_merkle_root[0] = MultiMiMC7(2,91);
+    tx_merkle_root[0].in[0] <== tx.out - paths2tx_root_pos[0]* (tx.out - paths2tx_root[0]);
+    tx_merkle_root[0].in[1] <== paths2tx_root[0] - paths2tx_root_pos[0]* (paths2tx_root[0] - tx.out);
+    
+    for (i=1; i<m-1; i++){
+    	tx_merkle_root[i] = MultiMiMC7(2,91);
+    	tx_merkle_root[i].in[0] <== tx_merkle_root[i-1].out - paths2tx_root_pos[i]* (tx_merkle_root[i-1].out - paths2tx_root[i]);
+    	tx_merkle_root[i].in[1] <== paths2tx_root[i] - paths2tx_root_pos[i]* (paths2tx_root[i] - tx_merkle_root[i-1].out);
+    }
+
+    tx_root === tx_merkle_root[m-2].out;
     
     // accounts existence check
     component old_hash_from = MultiMiMC7(4,91);
@@ -74,7 +100,7 @@ template Main(n) {
 
     current_state === old_merkle_to[n-2].out;
 
-// authorization check
+    // authorization check
     component verifier = EdDSAMiMCVerifier();   
     verifier.enabled <== 1;
     verifier.Ax <== pubkey_x;
@@ -107,7 +133,7 @@ template Main(n) {
     	new_merkle_from[i] = MultiMiMC7(2,91);
     	new_merkle_from[i].in[0] <== new_merkle_from[i-1].out - paths2root_from_pos[i]* (new_merkle_from[i-1].out - paths2new_root_from[i]);
     	new_merkle_from[i].in[1] <== paths2new_root_from[i] - paths2root_from_pos[i]* (paths2new_root_from[i] - new_merkle_from[i-1].out);
-    	}
+    }
 
     component new_hash_to = MultiMiMC7(4,91);
     new_hash_to.in[0] <== to;
@@ -132,4 +158,4 @@ template Main(n) {
 
     }
 
-component main = Main(6);
+component main = Main(6,4);

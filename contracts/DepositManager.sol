@@ -18,7 +18,9 @@ contract DepositManager {
         uint token;
         uint balance;
         uint nonce;
+        // bytes32 root;
     }
+
 
     mapping (uint => PendingDeposit) pendingDeposits;
     uint pendingDepositCount;

@@ -1,2 +1,4 @@
 node_modules/
 .secret
+proving_key.json
+verification_key.json
