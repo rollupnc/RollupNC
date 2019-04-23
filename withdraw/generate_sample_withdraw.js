@@ -14,17 +14,8 @@ const TX_DEPTH = 4;
 const BAL_DEPTH = 6;
 
 // generate zero account with the following parameters
-const zero_address = account.zeroAddress();
-const zero_token_type = [0];
-const zero_balance = [0];
-const zero_nonce = [0];  
-
-// generate balance leaf for zero account
-const zero_leaf = balanceLeaf.generateBalanceLeafArray(
-    [account.getPubKeysX(zero_address)],
-    [account.getPubKeysY(zero_address)],
-    zero_token_type, zero_balance, zero_nonce
-)[0]
+const zero_address = account.zeroAddress();  
+const zero_leaf = balanceLeaf.getZeroLeaf();
 const zero_leaf_hash = balanceLeaf.hashBalanceLeafArray([zero_leaf])[0]
 
 // generate Alice account with the following parameters
@@ -37,20 +28,20 @@ const nonces = [0];
 
 // generate balance leaves for user accounts
 const alice_leaf = balanceLeaf.generateBalanceLeafArray(
-    [account.getPubKeysX(pubKeys)],
-    [account.getPubKeysY(pubKeys)],
+    account.getPubKeysX(pubKeys),
+    account.getPubKeysY(pubKeys),
     token_types, balances, nonces
 )[0]
 const alice_leaf_hash = balanceLeaf.hashBalanceLeafArray([alice_leaf])[0]
 
 // generate balance tree
 console.log("The zero account is permanently at the zero index of the balance tree.")
-const balance_path_zero = [alice_leaf_hash.toString(),0,0,0,0]
-const balance_pos_zero = [0,0,0,0,0]
+const balance_path_zero = [alice_leaf_hash.toString(),0,0,0,0,0]
+const balance_pos_zero = merkle.idxToBinaryPos(0, BAL_DEPTH)
 
 console.log("Alice's account is at index 1 of the balance tree.") 
-const balance_path_alice = [zero_leaf_hash.toString(),0,0,0,0]
-const balance_pos_alice = [1,0,0,0,0]
+const balance_path_alice = [zero_leaf_hash.toString(),0,0,0,0,0]
+const balance_pos_alice = merkle.idxToBinaryPos(1, BAL_DEPTH)
 
 const balance_root_zero = merkle.rootFromLeafAndPath(
     BAL_DEPTH, zero_leaf_hash, 
@@ -64,18 +55,17 @@ console.log("balance root: ", balance_root_zero)
 console.log("balance root: ", balance_root_alice)
 
 // transfer from Alice account to zero address (withdraw)
-const alice = pubKeys;
-const transfer_from = alice;
-const transfer_to = zero_address;
+const transfer_from = pubKeys;
+const transfer_to = [zero_address];
 const transfer_amt = [1000];
 const transfer_type = [10];
 
 // generate tx leaf for withdraw
 const withdrawTxLeaf = txLeaf.generateTxLeafArray(
-    [account.getPubKeysX(transfer_from)], 
-    [account.getPubKeysY(transfer_from)],
-    [account.getPubKeysX(transfer_to)], 
-    [account.getPubKeysY(transfer_to)],
+    account.getPubKeysX(transfer_from), 
+    account.getPubKeysY(transfer_from),
+    account.getPubKeysX(transfer_to), 
+    account.getPubKeysY(transfer_to),
     transfer_amt, 
     transfer_type
 )[0]
@@ -83,11 +73,11 @@ const withdrawTxLeaf = txLeaf.generateTxLeafArray(
 const withdrawTxLeafHash = txLeaf.hashTxLeafArray([withdrawTxLeaf])[0]
 
 // Alice signs tx leaf
-const signature = eddsa.signMiMC(prvKeys, withdrawTxLeafHash);
+const signature = eddsa.signMiMC(prvKeys[0], withdrawTxLeafHash);
 
 // Merkle path and position in tx tree
-const tx_path = [0,0,0];
-const tx_pos = [0,0,0];
+const tx_path = [0,0,0,0];
+const tx_pos = merkle.idxToBinaryPos(0, TX_DEPTH)
 
 // generate tx tree and root
 var tx_root = merkle.rootFromLeafAndPath(
@@ -104,18 +94,15 @@ let [new_alice_leaf, new_zero_leaf] = update.processTx(
     zero_leaf,
     signature)
 
-console.log(new_alice_leaf)
-console.log(new_zero_leaf)
-
 const new_alice_leaf_hash = balanceLeaf.hashBalanceLeafArray([new_alice_leaf])[0]
 const new_zero_leaf_hash = balanceLeaf.hashBalanceLeafArray([new_zero_leaf])[0]
 
 // generate new balance tree
 console.log("The zero account is permanently at the zero index of the balance tree.")
-const new_balance_path_zero = [new_alice_leaf_hash,0,0,0,0]
+const new_balance_path_zero = [new_alice_leaf_hash.toString(),0,0,0,0,0]
 
 console.log("Alice's account is at index 1 of the balance tree.") 
-const new_balance_path_alice = [new_zero_leaf_hash,0,0,0,0]
+const new_balance_path_alice = [new_zero_leaf_hash.toString(),0,0,0,0,0]
 
 const new_balance_root_zero = merkle.rootFromLeafAndPath(
     BAL_DEPTH, new_zero_leaf_hash, new_balance_path_zero, balance_pos_zero
@@ -129,9 +116,9 @@ console.log("new balance root: ", new_balance_root_alice)
 const inputs = {
     tx_root: tx_root.toString(),
   
-    paths2tx_root: [0, 0, 0],
+    paths2tx_root: tx_path,
   
-    paths2tx_root_pos: [0, 0, 0],
+    paths2tx_root_pos: tx_pos, 
   
     current_state: balance_root_alice.toString(),
   
@@ -140,10 +127,10 @@ const inputs = {
     // paths2new_root_from: new_balance_path_alice.toString(),
     // paths2new_root_to: new_balance_path_zero.toString(),
   
-    paths2old_root_from: [zero_leaf_hash.toString(),0,0,0,0],
-    paths2old_root_to: [alice_leaf_hash.toString(),0,0,0,0],
-    paths2new_root_from: [new_zero_leaf_hash.toString(),0,0,0,0],
-    paths2new_root_to: [new_alice_leaf_hash.toString(),0,0,0,0],
+    paths2old_root_from: balance_path_alice,
+    paths2old_root_to: balance_path_zero,
+    paths2new_root_from: new_balance_path_alice,
+    paths2new_root_to: new_balance_path_zero,
 
     paths2root_from_pos: balance_pos_alice,
     paths2root_to_pos: balance_pos_zero,
@@ -155,15 +142,15 @@ const inputs = {
     S: signature.S.toString(),
   
     nonce_from: nonces[0].toString(),
-    to_x: account.getPubKeysX(zero_address).toString(),
-    to_y: account.getPubKeysY(zero_address).toString(),
-    nonce_to: zero_nonce[0].toString(),
+    to_x: account.getPubKeysX([zero_address]).toString(),
+    to_y: account.getPubKeysY([zero_address]).toString(),
+    nonce_to: zero_leaf['nonce'].toString(),
     amount: transfer_amt[0].toString(),
   
     token_balance_from: balances[0].toString(),
-    token_balance_to: zero_balance[0].toString(),
+    token_balance_to: zero_leaf['balance'].toString(),
     token_type_from: token_types[0].toString(),
-    token_type_to: zero_token_type[0].toString()
+    token_type_to: zero_leaf['token_type'].toString()
   };
   
   fs.writeFileSync(

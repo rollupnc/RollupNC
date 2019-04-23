@@ -8,33 +8,33 @@ template Main(n,m) {
     signal input tx_root;
 
     // Merkle proof for transaction in tx tree
-    signal private input paths2tx_root[m-1];
+    signal private input paths2tx_root[m];
 
     // binary vector indicating whether node in tx proof is left or right
-    signal private input paths2tx_root_pos[m-1];
+    signal private input paths2tx_root_pos[m];
 
     // Merkle root of old balance tree
     signal input current_state;
 
     // Merkle proof for sender account in old balance tree
-    signal private input paths2old_root_from[n-1];
+    signal private input paths2old_root_from[n];
 
     // Merkle proof for receiver account in old balance tree
-    signal private input paths2old_root_to[n-1];
+    signal private input paths2old_root_to[n];
 
     // Merkle proof for sender account in new balance tree
-    signal private input paths2new_root_from[n-1];
+    signal private input paths2new_root_from[n];
 
     // Merkle proof for receiver account in new balance tree
-    signal private input paths2new_root_to[n-1];
+    signal private input paths2new_root_to[n];
 
     // binary vector indicating whether node in balance proof for sender account
     // is left or right 
-    signal private input paths2root_from_pos[n-1];
+    signal private input paths2root_from_pos[n];
 
     // binary vector indicating whether node in balance proof for receiver account
     // is left or right 
-    signal private input paths2root_to_pos[n-1];
+    signal private input paths2root_to_pos[n];
     
     signal private input from_x; //sender address x coordinate
     signal private input from_y; //sender address y coordinate
@@ -78,20 +78,20 @@ template Main(n,m) {
     tx.in[5] <== token_type_from;
 
     // hash of first two entries in tx Merkle proof
-    component tx_merkle_root[m-1];
+    component tx_merkle_root[m];
     tx_merkle_root[0] = MultiMiMC7(2,91);
     tx_merkle_root[0].in[0] <== tx.out - paths2tx_root_pos[0]* (tx.out - paths2tx_root[0]);
     tx_merkle_root[0].in[1] <== paths2tx_root[0] - paths2tx_root_pos[0]* (paths2tx_root[0] - tx.out);
     
     // hash of all other entries in tx Merkle proof
-    for (i=1; i<m-1; i++){
+    for (i=1; i<m; i++){
     	tx_merkle_root[i] = MultiMiMC7(2,91);
     	tx_merkle_root[i].in[0] <== tx_merkle_root[i-1].out - paths2tx_root_pos[i]* (tx_merkle_root[i-1].out - paths2tx_root[i]);
     	tx_merkle_root[i].in[1] <== paths2tx_root[i] - paths2tx_root_pos[i]* (paths2tx_root[i] - tx_merkle_root[i-1].out);
     }
 
     // equality constraint: input tx root === computed tx root 
-    tx_root === tx_merkle_root[m-2].out;
+    tx_root === tx_merkle_root[m-1].out;
     
     // accounts existence check
 
@@ -104,20 +104,20 @@ template Main(n,m) {
     old_hash_from.in[4] <== token_type_from;
 
     // hash of first two entries in balance Merkle proof for sender account
-    component old_merkle_from[n-1];
+    component old_merkle_from[n];
     old_merkle_from[0] = MultiMiMC7(2,91);
     old_merkle_from[0].in[0] <== old_hash_from.out - paths2root_from_pos[0]* (old_hash_from.out - paths2old_root_from[0]);
     old_merkle_from[0].in[1] <== paths2old_root_from[0] - paths2root_from_pos[0]* (paths2old_root_from[0] - old_hash_from.out);
     
     // hash of all other entries in balance Merkle proof for sender account
-    for (i=1; i<n-1; i++){
+    for (i=1; i<n; i++){
     	old_merkle_from[i] = MultiMiMC7(2,91);
     	old_merkle_from[i].in[0] <== old_merkle_from[i-1].out - paths2root_from_pos[i]* (old_merkle_from[i-1].out - paths2old_root_from[i]);
     	old_merkle_from[i].in[1] <== paths2old_root_from[i] - paths2root_from_pos[i]* (paths2old_root_from[i] - old_merkle_from[i-1].out);
     }
 
     // equality constraint: input old balance root === computed old balance root from sender account
-    current_state === old_merkle_from[n-2].out;
+    current_state === old_merkle_from[n-1].out;
 
     // hash of receiver address, balance, nonce, token type
     component old_hash_to = MultiMiMC7(5,91);
@@ -128,20 +128,20 @@ template Main(n,m) {
     old_hash_to.in[4] <== token_type_to;
 
     // hash of first two entries in balance Merkle proof for receiver account
-    component old_merkle_to[n-1];
+    component old_merkle_to[n];
     old_merkle_to[0] = MultiMiMC7(2,91);
     old_merkle_to[0].in[0] <== old_hash_to.out - paths2root_to_pos[0]* (old_hash_to.out - paths2old_root_to[0]);
     old_merkle_to[0].in[1] <== paths2old_root_to[0] - paths2root_to_pos[0]* (paths2old_root_to[0] - old_hash_to.out);
 
      // hash of all other entries in balance Merkle proof for receiver account   
-    for (i=1; i<n-1; i++){
+    for (i=1; i<n; i++){
     	old_merkle_to[i] = MultiMiMC7(2,91);
     	old_merkle_to[i].in[0] <== old_merkle_to[i-1].out - paths2root_to_pos[i]* (old_merkle_to[i-1].out - paths2old_root_to[i]);
     	old_merkle_to[i].in[1] <== paths2old_root_to[i] - paths2root_to_pos[i]* (paths2old_root_to[i] - old_merkle_to[i-1].out);
     }
 
     // equality constraint: input old balance root === computed old balance root from receiver account
-    current_state === old_merkle_to[n-2].out;
+    current_state === old_merkle_to[n-1].out;
 
     // check that sender account signed transaction
     component verifier = EdDSAMiMCVerifier();   
@@ -176,12 +176,12 @@ template Main(n,m) {
     new_hash_from.in[4] <== token_type_from;
     
     // hash new sender leaf with original path to get new balance root
-	component new_merkle_from[n-1];
+	component new_merkle_from[n];
     new_merkle_from[0] = MultiMiMC7(2,91);
     new_merkle_from[0].in[0] <== new_hash_from.out - paths2root_from_pos[0]* (new_hash_from.out - paths2new_root_from[0]);
     new_merkle_from[0].in[1] <== paths2new_root_from[0] - paths2root_from_pos[0]* (paths2new_root_from[0] - new_hash_from.out);
     
-    for (i=1; i<n-1; i++){
+    for (i=1; i<n; i++){
     	new_merkle_from[i] = MultiMiMC7(2,91);
     	new_merkle_from[i].in[0] <== new_merkle_from[i-1].out - paths2root_from_pos[i]* (new_merkle_from[i-1].out - paths2new_root_from[i]);
     	new_merkle_from[i].in[1] <== paths2new_root_from[i] - paths2root_from_pos[i]* (paths2new_root_from[i] - new_merkle_from[i-1].out);
@@ -202,22 +202,22 @@ template Main(n,m) {
     new_hash_to.in[4] <== token_type_to;
     
     // hash new receiver leaf with original path to get new balance root
-	component new_merkle_to[n-1];
+	component new_merkle_to[n];
     new_merkle_to[0] = MultiMiMC7(2,91);
     new_merkle_to[0].in[0] <== new_hash_to.out - paths2root_to_pos[0]* (new_hash_to.out - paths2new_root_to[0]);
     new_merkle_to[0].in[1] <== paths2new_root_to[0] - paths2root_to_pos[0]* (paths2new_root_to[0] - new_hash_to.out);
     
-    for (i=1; i<n-1; i++){
+    for (i=1; i<n; i++){
     	new_merkle_to[i] = MultiMiMC7(2,91);
     	new_merkle_to[i].in[0] <== new_merkle_to[i-1].out - paths2root_to_pos[i]* (new_merkle_to[i-1].out - paths2new_root_to[i]);
     	new_merkle_to[i].in[1] <== paths2new_root_to[i] - paths2root_to_pos[i]* (paths2new_root_to[i] - new_merkle_to[i-1].out);
     }
 
     // new root computed from new sender and receiver leaves should be the same
-   	// new_merkle_from[n-2].out === new_merkle_to[n-2].out
+   	new_merkle_from[n-1].out === new_merkle_to[n-1].out
     
     // circuit outputs new balance root
-    out <== new_merkle_to[n-2].out;
+    out <== new_merkle_to[n-1].out;
 
     }
 
