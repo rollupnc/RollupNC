@@ -37,27 +37,30 @@ module.exports = {
     // },
 
     proofIdx: function(leafIdx, treeDepth){
-        treeWidth = 2**treeDepth;
-        proofIdx = new Array(treeDepth - 1)
-        layersFromBottom = 0;
-        
-        for (i = 0; i < treeDepth; i++){
-            if (leafIdx % 2 == 0){ 
-                if (layersFromBottom % 2 == 0){
+        console.log("leafIdx", leafIdx)
+        proofIdxArray = new Array(treeDepth);
+        proofPos = module.exports.idxToBinaryPos(leafIdx, treeDepth);
+        console.log("proofPos", proofPos)
 
-                } else {
-                    
-                }
+        layerIdx = leafIdx;
+        num = Math.floor(module.exports.getBase2Log(leafIdx)) - 1
+        if (num < 1){ num = 1 }
+        for (i = treeDepth; i > 0; i--){
+            console.log("layerIdx before", treeDepth - i, layerIdx)
+            if (proofPos[treeDepth - i] == 0){
+                proofIdxArray[treeDepth - i] = layerIdx + 1
+                layerIdx = layerIdx + 2**i/num - num;
             } else {
-                if (layersFromBottom % 2 == 0){
-
-                } else {
-                    
-                }
+                proofIdxArray[treeDepth - i] = layerIdx - 1
+                layerIdx = layerIdx + 2**i/num ;
             }
 
-            layersFromBottom++; 
+            console.log("layerIdx", treeDepth - i, layerIdx)
+
         }
+
+        return(proofIdxArray)
+
 
     },
 
