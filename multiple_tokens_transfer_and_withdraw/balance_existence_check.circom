@@ -10,8 +10,8 @@ template BalanceExistence(k){
     signal input token_type;
 
     signal input balance_root;
-    signal input paths2_root_pos[k-1];
-    signal input paths2_root[k-1];
+    signal input paths2_root_pos[k];
+    signal input paths2_root[k];
 
     component balanceLeaf = BalanceLeaf();
     balanceLeaf.x <== x;
@@ -24,7 +24,7 @@ template BalanceExistence(k){
     balanceExistence.leaf <== balanceLeaf.out;
     balanceExistence.root <== balance_root;
 
-    for (var s = 0; s < k-1; s++){
+    for (var s = 0; s < k; s++){
         balanceExistence.paths2_root_pos[s] <== paths2_root_pos[s];
         balanceExistence.paths2_root[s] <== paths2_root[s];
     }

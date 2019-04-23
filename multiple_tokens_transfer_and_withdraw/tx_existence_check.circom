@@ -13,8 +13,8 @@ template TxExistence(k){
     signal input token_type_from;
 
     signal input tx_root;
-    signal input paths2_root_pos[k-1];
-    signal input paths2_root[k-1];
+    signal input paths2_root_pos[k];
+    signal input paths2_root[k];
 
     signal input R8x;
     signal input R8y;
@@ -32,7 +32,7 @@ template TxExistence(k){
     txExistence.leaf <== txLeaf.out;
     txExistence.root <== tx_root;
 
-    for (var q = 0; q < k-1; q++){
+    for (var q = 0; q < k; q++){
         txExistence.paths2_root_pos[q] <== paths2_root_pos[q];
         txExistence.paths2_root[q] <== paths2_root[q];
     }

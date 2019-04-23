@@ -15,10 +15,10 @@ template Main(n,m) {
     signal input tx_root;
 
     // Merkle proof for transaction in tx tree
-    signal private input paths2tx_root[2**m, m-1];
+    signal private input paths2tx_root[2**m, m];
 
     // binary vector indicating whether node in tx proof is left or right
-    signal private input paths2tx_root_pos[2**m, m-1];
+    signal private input paths2tx_root_pos[2**m, m];
 
     // Merkle root of old balance tree
     signal input current_state;
@@ -27,24 +27,24 @@ template Main(n,m) {
     signal private input intermediate_roots[2**m];
 
     // Merkle proof for sender account in old balance tree
-    signal private input paths2old_root_from[2**m, n-1];
+    signal private input paths2old_root_from[2**m, n];
 
     // Merkle proof for receiver account in old balance tree
-    signal private input paths2old_root_to[2**m, n-1];
+    signal private input paths2old_root_to[2**m, n];
 
     // Merkle proof for sender account in new balance tree
-    signal private input paths2new_root_from[2**m, n-1];
+    signal private input paths2new_root_from[2**m, n];
 
     // Merkle proof for receiver account in new balance tree
-    signal private input paths2new_root_to[2**m, n-1];
+    signal private input paths2new_root_to[2**m, n];
 
     // binary vector indicating whether node in balance proof for sender account
     // is left or right 
-    signal private input paths2root_from_pos[2**m, n-1];
+    signal private input paths2root_from_pos[2**m, n];
 
     // binary vector indicating whether node in balance proof for receiver account
     // is left or right 
-    signal private input paths2root_to_pos[2**m, n-1];
+    signal private input paths2root_to_pos[2**m, n];
     
     signal private input from_x[2**m]; //sender address x coordinate
     signal private input from_y[2**m]; //sender address y coordinate
@@ -93,7 +93,7 @@ template Main(n,m) {
 
         txExistence[i].tx_root <== tx_root;
 
-        for (var j = 0; j < m-1; j++){
+        for (var j = 0; j < m; j++){
             txExistence[i].paths2_root_pos[j] <== paths2tx_root_pos[i, j] ;
             txExistence[i].paths2_root[j] <== paths2tx_root[i, j];
         }
@@ -127,7 +127,7 @@ template Main(n,m) {
         receiverExistence[i].token_type <== token_type_to[i];
 
         receiverExistence[i].balance_root <== intermediate_roots[i];
-        for (var j = 0; j < n-1; j++){
+        for (var j = 0; j < n; j++){
             receiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
             receiverExistence[i].paths2_root[j] <== paths2old_root_to[i, j];
         }
@@ -155,7 +155,7 @@ template Main(n,m) {
         newSenderExistence[i].token_type <== token_type_from[i];
 
         newSenderExistence[i].balance_root <== intermediate_roots[i + 1];
-        for (var j = 0; j < n-1; j++){
+        for (var j = 0; j < n; j++){
             newSenderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j] ;
             newSenderExistence[i].paths2_root[j] <== paths2new_root_from[i, j];
         }
@@ -176,7 +176,7 @@ template Main(n,m) {
         newReceiverExistence[i].token_type <== token_type_to[i];
 
         newReceiverExistence[i].balance_root <== intermediate_roots[i + 1];
-        for (var j = 0; j < n-1; j++){
+        for (var j = 0; j < n; j++){
             newReceiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
             newReceiverExistence[i].paths2_root[j] <== paths2new_root_to[i, j];
         }
@@ -242,14 +242,14 @@ template Main(n,m) {
     new_final_sender.x <== from_x[2**m - 1];
     new_final_sender.y <== from_y[2**m - 1];
     new_final_sender.token_balance <== token_balance_from[2**m - 1] - amount[2**m - 1];
-    new_final_sender.nonce <== nonce_fron[2**m - 1] + 1;
+    new_final_sender.nonce <== nonce_from[2**m - 1] + 1;
     new_final_sender.token_type <== token_type_from[2**m - 1];
 
     component new_merkle_root_from_final_sender = GetMerkleRoot(n);
     new_merkle_root_from_final_sender.leaf <== new_final_sender.out;
     for (var j = 0; j < n - 1; j++){
         new_merkle_root_from_final_sender.paths2_root[j] <== paths2new_root_from[2**m - 1, j];
-        new_merkle_root_from_final_sender.paths2_root_pos <== paths2root_from_pos[2**m - 1, j];
+        new_merkle_root_from_final_sender.paths2_root_pos[j] <== paths2root_from_pos[2**m - 1, j];
     }
 
     component new_final_receiver = BalanceLeaf();
@@ -261,9 +261,9 @@ template Main(n,m) {
 
     component new_merkle_root_from_final_receiver = GetMerkleRoot(n);
     new_merkle_root_from_final_receiver.leaf <== new_final_receiver.out;
-    for (var j = 0; j < n - 1; j++){
+    for (var j = 0; j < n; j++){
         new_merkle_root_from_final_receiver.paths2_root[j] <== paths2new_root_to[2**m - 1, j];
-        new_merkle_root_from_final_receiver.paths2_root_pos <== paths2root_to_pos[2**m - 1, j];
+        new_merkle_root_from_final_receiver.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j];
     }
 
     new_merkle_root_from_final_sender.out === new_merkle_root_from_final_receiver.out;   

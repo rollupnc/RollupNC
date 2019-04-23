@@ -4,22 +4,22 @@ const { MerkleTree } = require('merkletreejs')
 module.exports = {
 
     rootFromLeafAndPath: function(depth, leaf, merkle_path, merkle_path_pos){
-        if (depth == merkle_path.length + 1){
-            var root = new Array(depth - 1);
+        if (depth == merkle_path.length){
+            var root = new Array(depth);
             left = leaf - BigInt(merkle_path_pos[0])*(leaf - BigInt(merkle_path[0]));
             right = BigInt(merkle_path[0]) - BigInt(merkle_path_pos[0])*(BigInt(merkle_path[0]) - leaf);
             root[0] = mimcjs.multiHash([left, right]);
             var i;
-            for (i = 1; i < depth - 1; i++) {
+            for (i = 1; i < depth; i++) {
                 left = root[i-1] - BigInt(merkle_path_pos[i])*(root[i-1] - BigInt(merkle_path[i]));
                 right = BigInt(merkle_path[i]) - BigInt(merkle_path_pos[i])*(BigInt(merkle_path[i]) - root[i-1]);              
                 root[i] = mimcjs.multiHash([left, right]);
             }
         } else {
             console.log("Merkle path is of length ", merkle_path.length, 
-            "when it should be length ", depth - 1)
+            "when it should be length ", depth)
         }
-        return root[depth - 2];
+        return root[depth - 1];
     },
 
     // treeFromLeafArray: function(leafArray){
@@ -35,6 +35,31 @@ module.exports = {
     // verifyProof: function(proof, leaf, root, tree){
     //     return tree.verify(proof, leaf, root)
     // },
+
+    proofIdx: function(leafIdx, treeDepth){
+        treeWidth = 2**treeDepth;
+        proofIdx = new Array(treeDepth - 1)
+        layersFromBottom = 0;
+        
+        for (i = 0; i < treeDepth; i++){
+            if (leafIdx % 2 == 0){ 
+                if (layersFromBottom % 2 == 0){
+
+                } else {
+                    
+                }
+            } else {
+                if (layersFromBottom % 2 == 0){
+
+                } else {
+                    
+                }
+            }
+
+            layersFromBottom++; 
+        }
+
+    },
 
     treeFromLeafArray: function(leafArray){
         depth = module.exports.getBase2Log(leafArray.length);
@@ -66,7 +91,7 @@ module.exports = {
         return Math.log(y) / Math.log(2);
     },
 
-    generateMerklePos: function(from, to, binLength){
+    generateMerklePosArray: function(from, to, binLength){
         merklePosArray = [];
         for (i = from;  i < to; i++){
             binPos = module.exports.idxToBinaryPos(i, binLength)
