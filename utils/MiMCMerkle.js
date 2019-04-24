@@ -1,13 +1,30 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
-const { MerkleTree } = require('merkletreejs')
 
 module.exports = {
+
+    getProof: function(leafIdx, tree, leaves){
+        depth = tree.length;
+        proofIdx = module.exports.proofIdx(leafIdx, depth);
+        proof = new Array(depth);
+        proof[0] = leaves[proofIdx[0]]
+        for (i = 1; i < depth; i++){
+            proof[i] = tree[depth - i][proofIdx[i]]
+        }
+        return proof;
+    },
+
+    verifyProof: function(leaf, idx, proof, root){
+        depth = proof.length;
+        pos = module.exports.idxToBinaryPos(idx, depth);
+        computed_root = module.exports.rootFromLeafAndPath(depth, leaf, proof, pos)
+        return (root == computed_root)
+    },
 
     rootFromLeafAndPath: function(depth, leaf, merkle_path, merkle_path_pos){
         if (depth == merkle_path.length){
             var root = new Array(depth);
-            left = leaf - BigInt(merkle_path_pos[0])*(leaf - BigInt(merkle_path[0]));
-            right = BigInt(merkle_path[0]) - BigInt(merkle_path_pos[0])*(BigInt(merkle_path[0]) - leaf);
+            left = BigInt(leaf) - BigInt(merkle_path_pos[0])*(BigInt(leaf) - BigInt(merkle_path[0]));
+            right = BigInt(merkle_path[0]) - BigInt(merkle_path_pos[0])*(BigInt(merkle_path[0]) - BigInt(leaf));
             root[0] = mimcjs.multiHash([left, right]);
             var i;
             for (i = 1; i < depth; i++) {
@@ -22,46 +39,26 @@ module.exports = {
         return root[depth - 1];
     },
 
-    // treeFromLeafArray: function(leafArray){
-    //     tree = new MerkleTree(Buffer.from(leafArray), mimcjs.hash);
-    //     return tree;
-    // },
-
-    // proofFromTree: function(leaf, tree){
-    //     proof = tree.getProof(leaf)
-    //     return proof;
-    // },
-
-    // verifyProof: function(proof, leaf, root, tree){
-    //     return tree.verify(proof, leaf, root)
-    // },
 
     proofIdx: function(leafIdx, treeDepth){
-        console.log("leafIdx", leafIdx)
         proofIdxArray = new Array(treeDepth);
         proofPos = module.exports.idxToBinaryPos(leafIdx, treeDepth);
-        console.log("proofPos", proofPos)
 
-        layerIdx = leafIdx;
-        num = Math.floor(module.exports.getBase2Log(leafIdx)) - 1
-        if (num < 1){ num = 1 }
-        for (i = treeDepth; i > 0; i--){
-            console.log("layerIdx before", treeDepth - i, layerIdx)
-            if (proofPos[treeDepth - i] == 0){
-                proofIdxArray[treeDepth - i] = layerIdx + 1
-                layerIdx = layerIdx + 2**i/num - num;
+        if (leafIdx % 2 == 0){
+            proofIdxArray[0] = leafIdx + 1;
+        } else {
+            proofIdxArray[0] = leafIdx - 1;
+        }
+
+        for (i = 1; i < treeDepth; i++){
+            if (proofPos[i] == 1){
+                proofIdxArray[i] = Math.floor(proofIdxArray[i - 1] / 2) - 1;
             } else {
-                proofIdxArray[treeDepth - i] = layerIdx - 1
-                layerIdx = layerIdx + 2**i/num ;
+                proofIdxArray[i] = Math.floor(proofIdxArray[i - 1] / 2) + 1;
             }
-
-            console.log("layerIdx", treeDepth - i, layerIdx)
-
         }
 
         return(proofIdxArray)
-
-
     },
 
     treeFromLeafArray: function(leafArray){
@@ -76,6 +73,10 @@ module.exports = {
 
         // return treeRoot[depth-1]
         return tree
+    },
+
+    rootFromLeafArray: function(leafArray){
+        return module.exports.treeFromLeafArray(leafArray)[0][0]
     },
 
     pairwiseHash: function(array){

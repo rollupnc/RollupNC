@@ -4,8 +4,8 @@ module.exports = {
 
     getZeroLeaf: function(){
         zeroLeaf = {};
-        zeroLeaf['pubKey_x'] = "0".padStart(76,'0');
-        zeroLeaf['pubKey_y'] = "0".padStart(77,'0');
+        zeroLeaf['pubKey_x'] = BigInt("0".padStart(76,'0'));
+        zeroLeaf['pubKey_y'] = BigInt("0".padStart(77,'0'));
         zeroLeaf['balance'] = 0;
         zeroLeaf['nonce'] = 0;
         zeroLeaf['token_type'] = 0;
@@ -49,6 +49,5 @@ module.exports = {
             console.log('please enter values as arrays.')
         }
     }
-    
 }
 

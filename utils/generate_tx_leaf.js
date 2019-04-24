@@ -1,4 +1,5 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
+const account = require("./generate_accounts.js");
 
 module.exports = {
 
@@ -41,6 +42,5 @@ module.exports = {
             console.log('please enter values as arrays.')
         }
     }
-    
 }
 

@@ -60,7 +60,7 @@ module.exports = {
     },
 
     zeroAddress: function(){
-        return ["0".padStart(76,'0'), "0".padStart(77,'0')]
+        return [BigInt("0".padStart(76,'0')), BigInt("0".padStart(77,'0'))]
     },
 
     isZeroAddress: function(x, y){
