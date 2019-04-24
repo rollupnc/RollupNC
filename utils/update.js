@@ -1,8 +1,5 @@
 const eddsa = require("../circomlib/src/eddsa.js");
 const txLeaf = require("./generate_tx_leaf.js");
-const babyJub = require("../circomlib/src/babyjub");
-const snarkjs = require("snarkjs");
-const bigInt = snarkjs.bigInt;
 const account = require("../utils/generate_accounts.js");
 const merkle = require("../utils/MiMCMerkle.js");
 const balance = require("../utils/generate_balance_leaf.js");
@@ -108,8 +105,6 @@ module.exports = {
 
         }
 
-        console.log(intermediateRoots)
-
         return{
 
             tx_root: txRoot.toString(),
@@ -202,7 +197,6 @@ module.exports = {
 
             newFromProof = merkle.getProof(fromLeafIdx, newTree, newBalanceLeafHashArray)
             newToProof = merkle.getProof(toLeafIdx, newTree, newBalanceLeafHashArray)
-
 
         return {
             newRoot: newRoot,

@@ -74,113 +74,113 @@ template Main(n,m) {
     var ZERO_ADDRESS_Y = 00000000000000000000000000000000000000000000000000000000000000000000000000000;
 
     
-    // component txExistence[2**m - 1];
-    // component senderExistence[2**m - 1];
-    // component receiverExistence[2**m - 1];
-    // component newSenderExistence[2**m - 1];
-    // component newReceiverExistence[2**m - 1];
+    component txExistence[2**m - 1];
+    component senderExistence[2**m - 1];
+    component receiverExistence[2**m - 1];
+    component newSenderExistence[2**m - 1];
+    component newReceiverExistence[2**m - 1];
 
-    // for (var i = 0; i < 2**m - 1; i++) {
+    for (var i = 0; i < 2**m - 1; i++) {
 
-    //     // transactions existence and signature check
-    //     txExistence[i] = TxExistence(m);
-    //     txExistence[i].from_x <== from_x[i];
-    //     txExistence[i].from_y <== from_y[i];
-    //     txExistence[i].to_x <== to_x[i];
-    //     txExistence[i].to_y <== to_y[i];
-    //     txExistence[i].amount <== amount[i];
-    //     txExistence[i].token_type_from <== token_type_from[i];
+        // transactions existence and signature check
+        txExistence[i] = TxExistence(m);
+        txExistence[i].from_x <== from_x[i];
+        txExistence[i].from_y <== from_y[i];
+        txExistence[i].to_x <== to_x[i];
+        txExistence[i].to_y <== to_y[i];
+        txExistence[i].amount <== amount[i];
+        txExistence[i].token_type_from <== token_type_from[i];
 
-    //     txExistence[i].tx_root <== tx_root;
+        txExistence[i].tx_root <== tx_root;
 
-    //     for (var j = 0; j < m; j++){
-    //         txExistence[i].paths2_root_pos[j] <== paths2tx_root_pos[i, j] ;
-    //         txExistence[i].paths2_root[j] <== paths2tx_root[i, j];
-    //     }
+        for (var j = 0; j < m; j++){
+            txExistence[i].paths2_root_pos[j] <== paths2tx_root_pos[i, j] ;
+            txExistence[i].paths2_root[j] <== paths2tx_root[i, j];
+        }
 
-    //     txExistence[i].R8x <== R8x[i];
-    //     txExistence[i].R8y <== R8y[i];
-    //     txExistence[i].S <== S[i];
+        txExistence[i].R8x <== R8x[i];
+        txExistence[i].R8y <== R8y[i];
+        txExistence[i].S <== S[i];
     
-    //     // accounts existence check
+        // accounts existence check
 
-    //     // for sender address
-    //     senderExistence[i] = BalanceExistence(n);
-    //     senderExistence[i].x <== from_x[i];
-    //     senderExistence[i].y <== from_y[i];
-    //     senderExistence[i].token_balance <== token_balance_from[i];
-    //     senderExistence[i].nonce <== nonce_from[i];
-    //     senderExistence[i].token_type <== token_type_from[i];
+        // for sender address
+        senderExistence[i] = BalanceExistence(n);
+        senderExistence[i].x <== from_x[i];
+        senderExistence[i].y <== from_y[i];
+        senderExistence[i].token_balance <== token_balance_from[i];
+        senderExistence[i].nonce <== nonce_from[i];
+        senderExistence[i].token_type <== token_type_from[i];
 
-    //     senderExistence[i].balance_root <== intermediate_roots[i];
-    //     for (var j = 0; j < n; j++){
-    //         senderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j];
-    //         senderExistence[i].paths2_root[j] <== paths2old_root_from[i, j];
-    //     }
+        senderExistence[i].balance_root <== intermediate_roots[i];
+        for (var j = 0; j < n; j++){
+            senderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j];
+            senderExistence[i].paths2_root[j] <== paths2old_root_from[i, j];
+        }
 
-    //     // for receiver address
-    //     receiverExistence[i] = BalanceExistence(n);
-    //     receiverExistence[i].x <== to_x[i];
-    //     receiverExistence[i].y <== to_y[i];
-    //     receiverExistence[i].token_balance <== token_balance_to[i];
-    //     receiverExistence[i].nonce <== nonce_to[i];
-    //     receiverExistence[i].token_type <== token_type_to[i];
+        // for receiver address
+        receiverExistence[i] = BalanceExistence(n);
+        receiverExistence[i].x <== to_x[i];
+        receiverExistence[i].y <== to_y[i];
+        receiverExistence[i].token_balance <== token_balance_to[i];
+        receiverExistence[i].nonce <== nonce_to[i];
+        receiverExistence[i].token_type <== token_type_to[i];
 
-    //     receiverExistence[i].balance_root <== intermediate_roots[i];
-    //     for (var j = 0; j < n; j++){
-    //         receiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
-    //         receiverExistence[i].paths2_root[j] <== paths2old_root_to[i, j];
-    //     }
+        receiverExistence[i].balance_root <== intermediate_roots[i];
+        for (var j = 0; j < n; j++){
+            receiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
+            receiverExistence[i].paths2_root[j] <== paths2old_root_to[i, j];
+        }
     
-    //     // balance checks
-    //     token_balance_from[i] - amount[i] <= token_balance_from[i];
-    //     token_balance_to[i] + amount[i] >= token_balance_to[i];
+        // balance checks
+        token_balance_from[i] - amount[i] <= token_balance_from[i];
+        token_balance_to[i] + amount[i] >= token_balance_to[i];
 
-    //     nonce_from[i] != NONCE_MAX_VALUE;
+        nonce_from[i] != NONCE_MAX_VALUE;
 
-    //     // check token types for non-withdraw transfers
-    //     if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
-    //         token_type_to[i] === token_type_from[i];
-    //     }
+        // check token types for non-withdraw transfers
+        if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
+            token_type_to[i] === token_type_from[i];
+        }
 
-    //     // accounts updates and existence checks
+        // accounts updates and existence checks
 
-    //     // for new sender balance
-    //     // subtract amount from sender balance; increase sender nonce 
-    //     newSenderExistence[i] = BalanceExistence(n);
-    //     newSenderExistence[i].x <== from_x[i];
-    //     newSenderExistence[i].y <== from_y[i];
-    //     newSenderExistence[i].token_balance <== token_balance_from[i] - amount[i];
-    //     newSenderExistence[i].nonce <== nonce_from[i] + 1;
-    //     newSenderExistence[i].token_type <== token_type_from[i];
+        // for new sender balance
+        // subtract amount from sender balance; increase sender nonce 
+        newSenderExistence[i] = BalanceExistence(n);
+        newSenderExistence[i].x <== from_x[i];
+        newSenderExistence[i].y <== from_y[i];
+        newSenderExistence[i].token_balance <== token_balance_from[i] - amount[i];
+        newSenderExistence[i].nonce <== nonce_from[i] + 1;
+        newSenderExistence[i].token_type <== token_type_from[i];
 
-    //     newSenderExistence[i].balance_root <== intermediate_roots[i + 1];
-    //     for (var j = 0; j < n; j++){
-    //         newSenderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j] ;
-    //         newSenderExistence[i].paths2_root[j] <== paths2new_root_from[i, j];
-    //     }
+        newSenderExistence[i].balance_root <== intermediate_roots[i + 1];
+        for (var j = 0; j < n; j++){
+            newSenderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j] ;
+            newSenderExistence[i].paths2_root[j] <== paths2new_root_from[i, j];
+        }
 
-    //     // for new receiver balance
-    //     // add amount to receiver balance
-    //     // if receiver is zero address, do not change balance
-    //     newReceiverExistence[i] = BalanceExistence(n);
-    //     newReceiverExistence[i].x <== to_x[i];
-    //     newReceiverExistence[i].y <== to_y[i];
-    //     if (to_x[i] == ZERO_ADDRESS_X && to_y[i] == ZERO_ADDRESS_Y){
-    //         newReceiverExistence[i].token_balance <== token_balance_to[i];
-    //     }
-    //     if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
-    //         newReceiverExistence[i].token_balance <== token_balance_to[i] + amount[i];
-    //     }
-    //     newReceiverExistence[i].nonce <== nonce_to[i];
-    //     newReceiverExistence[i].token_type <== token_type_to[i];
+        // for new receiver balance
+        // add amount to receiver balance
+        // if receiver is zero address, do not change balance
+        newReceiverExistence[i] = BalanceExistence(n);
+        newReceiverExistence[i].x <== to_x[i];
+        newReceiverExistence[i].y <== to_y[i];
+        if (to_x[i] == ZERO_ADDRESS_X && to_y[i] == ZERO_ADDRESS_Y){
+            newReceiverExistence[i].token_balance <== token_balance_to[i];
+        }
+        if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
+            newReceiverExistence[i].token_balance <== token_balance_to[i] + amount[i];
+        }
+        newReceiverExistence[i].nonce <== nonce_to[i];
+        newReceiverExistence[i].token_type <== token_type_to[i];
 
-    //     newReceiverExistence[i].balance_root <== intermediate_roots[i + 1];
-    //     for (var j = 0; j < n; j++){
-    //         newReceiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
-    //         newReceiverExistence[i].paths2_root[j] <== paths2new_root_to[i, j];
-    //     }
-    // }
+        newReceiverExistence[i].balance_root <== intermediate_roots[i + 1];
+        for (var j = 0; j < n; j++){
+            newReceiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
+            newReceiverExistence[i].paths2_root[j] <== paths2new_root_to[i, j];
+        }
+    }
 
     // final transactions existence and signature check
     component finalTxExistence = TxExistence(m);
@@ -212,9 +212,9 @@ template Main(n,m) {
     
     final_sender_existence.balance_root <== intermediate_roots[2**m - 1];
 
-    for (var j = 0; j < n; j++){
-        final_sender_existence.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j] ;
-        final_sender_existence.paths2_root[j] <== paths2old_root_to[2**m - 1, j];
+    for (var jj = 0; jj < n; jj++){
+        final_sender_existence.paths2_root_pos[jj] <== paths2root_from_pos[2**m - 1, jj] ;
+        final_sender_existence.paths2_root[jj] <== paths2old_root_from[2**m - 1, jj];
     }
 
     // final receiver existence check
@@ -224,13 +224,13 @@ template Main(n,m) {
     final_receiver_existence.token_balance <== token_balance_to[2**m - 1];
     final_receiver_existence.nonce <== nonce_to[2**m - 1];
     final_receiver_existence.token_type <== token_type_to[2**m - 1];
+    
     final_receiver_existence.balance_root <== intermediate_roots[2**m - 1];
     for (var j = 0; j < n; j++){
         final_receiver_existence.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j] ;
         final_receiver_existence.paths2_root[j] <== paths2old_root_to[2**m - 1, j];
     }
 
- 
 
     // final balance checks
     token_balance_from[2**m - 1] - amount[2**m - 1] <= token_balance_from[2**m - 1];
@@ -249,6 +249,8 @@ template Main(n,m) {
     new_final_sender.token_balance <== token_balance_from[2**m - 1] - amount[2**m - 1];
     new_final_sender.nonce <== nonce_from[2**m - 1] + 1;
     new_final_sender.token_type <== token_type_from[2**m - 1];
+
+    new_final_sender.out === 3081052579082236331047773283004689901662848153055788356430773148886112469168
 
     component new_merkle_root_from_final_sender = GetMerkleRoot(n);
     new_merkle_root_from_final_sender.leaf <== new_final_sender.out;
