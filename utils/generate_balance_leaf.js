@@ -12,6 +12,17 @@ module.exports = {
         return zeroLeaf;
     },
 
+    isZeroLeaf: function(balanceLeaf){
+        zeroLeaf = module.exports.getZeroLeaf()
+        if(
+            zeroLeaf['pubKey_x'] == balanceLeaf['pubKey_x'] &&
+            zeroLeaf['pubKey_y'] == balanceLeaf['pubKey_y'] &&
+            zeroLeaf['balance'] == balanceLeaf['balance'] &&
+            zeroLeaf['nonce'] == balanceLeaf['nonce'] &&
+            zeroLeaf['token_type'] == balanceLeaf['token_type'] 
+        ) return true
+    },
+
     generateBalanceLeafArray: function(accts_x, accts_y, token_types, balances, nonces){
         if (Array.isArray(accts_x)){
             balanceLeafArray = [];

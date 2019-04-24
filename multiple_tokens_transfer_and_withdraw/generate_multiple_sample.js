@@ -31,13 +31,6 @@ const balanceLeafArray = balanceLeaf.generateBalanceLeafArray(
     token_types, balances, nonces
 )
 
-const balanceLeafHashArray = balanceLeaf.hashBalanceLeafArray(
-    balanceLeafArray
-)
-
-const balanceTree = merkle.treeFromLeafArray(balanceLeafHashArray)
-const balanceRoot = merkle.rootFromLeafArray(balanceLeafHashArray)
-
 // generate tx's: 
 // 1. Alice --500--> Bob , 
 // 2. Bob --500--> withdraw,
@@ -45,16 +38,10 @@ const balanceRoot = merkle.rootFromLeafArray(balanceLeafHashArray)
 // 4. Charlie --250--> Bob
 
 from_accounts_idx = [1, 2, 1, 3]
-from_accounts = new Array(from_accounts_idx.length)
-for (i = 0; i < from_accounts_idx.length; i++){
-    from_accounts[i] = pubKeys[from_accounts_idx[i]]
-}
+from_accounts = update.pickByIndices(pubKeys, from_accounts_idx)
 
 to_accounts_idx = [2, 0, 3, 2]
-to_accounts = new Array(from_accounts_idx.length)
-for (i = 0; i < to_accounts_idx.length; i++){
-    to_accounts[i] = pubKeys[to_accounts_idx[i]]
-}
+to_accounts = update.pickByIndices(pubKeys, to_accounts_idx)
 
 from_x = account.getPubKeysX(from_accounts)
 from_y = account.getPubKeysY(from_accounts)
@@ -68,58 +55,33 @@ const txArray = txLeaf.generateTxLeafArray(
 )
 
 const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
-const txTree = merkle.treeFromLeafArray(txLeafArray)
-const txRoot = merkle.rootFromLeafArray(txLeafArray)
-
-const txPos = merkle.generateMerklePosArray(0, 2**TX_DEPTH, TX_DEPTH)
+const txTree = merkle.treeFromLeafArray(txLeafHashes)
+// const txRoot = merkle.rootFromLeafArray(txLeafHashes)
+// const txPos = merkle.generateMerklePosArray(TX_DEPTH)
 const txProofs = new Array(2**TX_DEPTH)
 for (jj = 0; jj < 2**TX_DEPTH; jj++){
-    txProofs[jj] = merkle.getProof(jj, txTree, txLeafArray)
+    txProofs[jj] = merkle.getProof(jj, txTree, txLeafHashes)
 }
 
-const signature = eddsa.signMiMC(prvKeys[0], txLeafHashes[0]);
-console.log(update.getNewRoot(txArray[0], 1, 2, signature, balanceLeafArray))
+const signatures = txLeaf.signTxLeafHashArray(
+    txLeafHashes, 
+    [prvKeys[0], prvKeys[1], prvKeys[0], prvKeys[2]]
+)
+
+const inputs = update.processTxArray(
+    TX_DEPTH,
+    pubKeys,
+    balanceLeafArray,
+    from_accounts_idx,
+    to_accounts_idx,
+    amounts,
+    tx_token_types,
+    signatures
+)
 
 
-// const inputs = {
-//     tx_root: txRoot.toString(),
-  
-//     paths2tx_root: txProofs,
-  
-//     paths2tx_root_pos: txPos,
-  
-//     current_state: balanceRoot,
-
-//     intermediate_roots: [0,0,0,0],
-
-//     paths2old_root_from: [zero_leaf_hash.toString(),0,0,0,0],
-//     paths2old_root_to: [alice_leaf_hash.toString(),0,0,0,0],
-//     paths2new_root_from: [new_zero_leaf_hash.toString(),0,0,0,0],
-//     paths2new_root_to: [new_alice_leaf_hash.toString(),0,0,0,0],
-
-//     paths2root_from_pos: balance_pos_alice,
-//     paths2root_to_pos: balance_pos_zero,
-  
-//     from_x: account.getPubKeysX(pubKeys).toString(),
-//     from_y: account.getPubKeysY(pubKeys).toString(),
-//     R8x: signature.R8[0].toString(),
-//     R8y: signature.R8[1].toString(),
-//     S: signature.S.toString(),
-  
-//     nonce_from: [0,0,0,0],
-//     to_x: [],
-//     to_y: [],
-//     nonce_to: [0,0,0,0],
-//     amount: [500, 500, 0, 0],
-  
-//     token_balance_from: [1000, 500, 0, 0],
-//     token_balance_to: [0, 0, 0, 0],
-//     token_type_from: [10, 0, 0, 0],
-//     token_type_to: [10, 10, 0, 0]
-// }
-  
-//   fs.writeFileSync(
-//     "./input.json",
-//     JSON.stringify(inputs),
-//     "utf-8"
-//   );
+fs.writeFileSync(
+    "./input.json",
+    JSON.stringify(inputs),
+    "utf-8"
+);

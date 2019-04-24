@@ -14,28 +14,24 @@ module.exports = {
     },
 
     verifyProof: function(leaf, idx, proof, root){
-        depth = proof.length;
-        pos = module.exports.idxToBinaryPos(idx, depth);
-        computed_root = module.exports.rootFromLeafAndPath(depth, leaf, proof, pos)
+        computed_root = module.exports.rootFromLeafAndPath(leaf, idx, proof)
         return (root == computed_root)
     },
 
-    rootFromLeafAndPath: function(depth, leaf, merkle_path, merkle_path_pos){
-        if (depth == merkle_path.length){
-            var root = new Array(depth);
-            left = BigInt(leaf) - BigInt(merkle_path_pos[0])*(BigInt(leaf) - BigInt(merkle_path[0]));
-            right = BigInt(merkle_path[0]) - BigInt(merkle_path_pos[0])*(BigInt(merkle_path[0]) - BigInt(leaf));
-            root[0] = mimcjs.multiHash([left, right]);
-            var i;
-            for (i = 1; i < depth; i++) {
-                left = root[i-1] - BigInt(merkle_path_pos[i])*(root[i-1] - BigInt(merkle_path[i]));
-                right = BigInt(merkle_path[i]) - BigInt(merkle_path_pos[i])*(BigInt(merkle_path[i]) - root[i-1]);              
-                root[i] = mimcjs.multiHash([left, right]);
-            }
-        } else {
-            console.log("Merkle path is of length ", merkle_path.length, 
-            "when it should be length ", depth)
+    rootFromLeafAndPath: function(leaf, idx, merkle_path){
+
+        merkle_path_pos = module.exports.idxToBinaryPos(idx, depth)
+        var root = new Array(depth);
+        left = BigInt(leaf) - BigInt(merkle_path_pos[0])*(BigInt(leaf) - BigInt(merkle_path[0]));
+        right = BigInt(merkle_path[0]) - BigInt(merkle_path_pos[0])*(BigInt(merkle_path[0]) - BigInt(leaf));
+        root[0] = mimcjs.multiHash([left, right]);
+        var i;
+        for (i = 1; i < depth; i++) {
+            left = root[i-1] - BigInt(merkle_path_pos[i])*(root[i-1] - BigInt(merkle_path[i]));
+            right = BigInt(merkle_path[i]) - BigInt(merkle_path_pos[i])*(BigInt(merkle_path[i]) - root[i-1]);              
+            root[i] = mimcjs.multiHash([left, right]);
         }
+
         return root[depth - 1];
     },
 
@@ -95,13 +91,21 @@ module.exports = {
         return Math.log(y) / Math.log(2);
     },
 
-    generateMerklePosArray: function(from, to, binLength){
+    generateMerklePosArray: function(depth){
         merklePosArray = [];
-        for (i = from;  i < to; i++){
-            binPos = module.exports.idxToBinaryPos(i, binLength)
+        for (i = 0;  i < 2**depth; i++){
+            binPos = module.exports.idxToBinaryPos(i, depth)
             merklePosArray.push(binPos)
         }
         return merklePosArray;
+    },
+
+    generateMerkleProofArray: function(txTree, txLeafHashes){
+        txProofs = new Array(txLeafHashes.length)
+        for (jj = 0; jj < txLeafHashes.length; jj++){
+            txProofs[jj] = module.exports.getProof(jj, txTree, txLeafHashes)
+        }
+        return txProofs;
     },
 
     binaryPosToIdx: function(binaryPos){
