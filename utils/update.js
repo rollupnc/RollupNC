@@ -108,6 +108,8 @@ module.exports = {
 
         }
 
+        console.log(intermediateRoots)
+
         return{
 
             tx_root: txRoot.toString(),
@@ -116,7 +118,7 @@ module.exports = {
 
             current_state: originalState.toString(), 
 
-            intermediateRoots: module.exports.stringifyArray(intermediateRoots.slice(0, 2**tx_depth)),
+            intermediate_roots: module.exports.stringifyArray(intermediateRoots.slice(0, 2**tx_depth)),
             paths2old_root_from: module.exports.stringifyArrayOfArrays(fromProofs),
             paths2old_root_to: module.exports.stringifyArrayOfArrays(toProofs),
             paths2new_root_from: module.exports.stringifyArrayOfArrays(newFromProofs),
