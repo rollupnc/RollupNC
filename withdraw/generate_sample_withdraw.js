@@ -44,12 +44,12 @@ const balance_path_alice = [zero_leaf_hash.toString(),0,0,0,0,0]
 const balance_pos_alice = merkle.idxToBinaryPos(1, BAL_DEPTH)
 
 const balance_root_zero = merkle.rootFromLeafAndPath(
-    BAL_DEPTH, zero_leaf_hash, 
-    balance_path_zero, balance_pos_zero
+    zero_leaf_hash, 0,
+    balance_path_zero
 ) 
 
 const balance_root_alice = merkle.rootFromLeafAndPath(
-    BAL_DEPTH, alice_leaf_hash, balance_path_alice, balance_pos_alice
+    alice_leaf_hash, 1, balance_path_alice
 )
 console.log("balance root: ", balance_root_zero)
 console.log("balance root: ", balance_root_alice)
@@ -71,6 +71,7 @@ const withdrawTxLeaf = txLeaf.generateTxLeafArray(
 )[0]
 
 const withdrawTxLeafHash = txLeaf.hashTxLeafArray([withdrawTxLeaf])[0]
+console.log("withdrawTx", withdrawTxLeafHash)
 
 // Alice signs tx leaf
 const signature = eddsa.signMiMC(prvKeys[0], withdrawTxLeafHash);
@@ -81,18 +82,16 @@ const tx_pos = merkle.idxToBinaryPos(0, TX_DEPTH)
 
 // generate tx tree and root
 var tx_root = merkle.rootFromLeafAndPath(
-    TX_DEPTH, withdrawTxLeafHash, tx_path, tx_pos);
+    withdrawTxLeafHash, 0, tx_path);
 console.log("transactions tree root: ", tx_root)
 
 // new zero leaf is the same as old zero leaf
 // so i'm not going to recompute that
 
 // new Alice leaf
-let [new_alice_leaf, new_zero_leaf] = update.processTx(
-    withdrawTxLeaf, 
-    alice_leaf,
-    zero_leaf,
-    signature)
+let [new_alice_leaf, new_zero_leaf] = update.getNewLeaves(
+    withdrawTxLeaf, alice_leaf, zero_leaf
+)
 
 const new_alice_leaf_hash = balanceLeaf.hashBalanceLeafArray([new_alice_leaf])[0]
 const new_zero_leaf_hash = balanceLeaf.hashBalanceLeafArray([new_zero_leaf])[0]
@@ -105,10 +104,10 @@ console.log("Alice's account is at index 1 of the balance tree.")
 const new_balance_path_alice = [new_zero_leaf_hash.toString(),0,0,0,0,0]
 
 const new_balance_root_zero = merkle.rootFromLeafAndPath(
-    BAL_DEPTH, new_zero_leaf_hash, new_balance_path_zero, balance_pos_zero
+    new_zero_leaf_hash, 0, new_balance_path_zero
 ) 
 const new_balance_root_alice = merkle.rootFromLeafAndPath(
-    BAL_DEPTH, new_alice_leaf_hash, new_balance_path_alice, balance_pos_alice
+    new_alice_leaf_hash, 1, new_balance_path_alice
 )
 console.log("new balance root: ", new_balance_root_zero)
 console.log("new balance root: ", new_balance_root_alice)

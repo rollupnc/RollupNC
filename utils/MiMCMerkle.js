@@ -19,7 +19,7 @@ module.exports = {
     },
 
     rootFromLeafAndPath: function(leaf, idx, merkle_path){
-
+        depth = merkle_path.length
         merkle_path_pos = module.exports.idxToBinaryPos(idx, depth)
         var root = new Array(depth);
         left = BigInt(leaf) - BigInt(merkle_path_pos[0])*(BigInt(leaf) - BigInt(merkle_path[0]));
