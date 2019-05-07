@@ -2,14 +2,16 @@ pragma solidity >=0.4.21;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import './MerkleTree.sol';
+// import './MerkleTree.sol';
 import './TokenRegistry.sol';
 
 contract DepositManager {      
     using SafeMath for uint;  
-    using MerkleTree for MerkleTree.Data;
+    // using MerkleTree for MerkleTree.Data;
 
-    MerkleTree.Data depositTree;
+    // current merkle root of deposit tree
+    // MerkleTree.Data depositTree;
+    uint256 depositTreeRoot;
     TokenRegistry tokenRegistry;
 
     struct PendingDeposit {
@@ -21,13 +23,9 @@ contract DepositManager {
         // bytes32 root;
     }
 
-
-    mapping (uint => PendingDeposit) pendingDeposits;
-    uint pendingDepositCount;
-
-    uint256 merkleRoot;
+    PendingDeposit[] pendingDeposits;
     address operator;
-    
+
     event DepositAdded(address indexed sender, uint indexed pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce);
     event DepositRootUpdated(uint256 indexed newRoot, uint256 indexed oldRoot);
     event TokenRegistered(address tokenAddr, uint tokenIndex);
@@ -52,29 +50,24 @@ contract DepositManager {
 
         require(tokenContract.allowance(msg.sender, address(this)) >= balance, "Not enough allowance");
         require(tokenContract.transferFrom(msg.sender, address(this), balance), "Token transfer failed");
-        
+
         addPendingDeposit(pubKey_x, pubKey_y, token, balance, nonce);
 
         emit DepositAdded(msg.sender, pubKey_x, pubKey_y, token, balance, nonce);
     }
+
     /// @notice Operator publishes deposits root after incorporating new deposits.
     /// @dev Will replace params these with the proper inputs and proof.
-    /// @param _newMerkleRoot New root for deposit merkle tree
+    /// @param _newDepositTreeRoot New root for deposit merkle tree
     /// TODO Validate Proof
-    function publishDeposits(uint256 _newMerkleRoot) external onlyOperator {        
-        emit DepositRootUpdated(_newMerkleRoot, merkleRoot);
-        merkleRoot = _newMerkleRoot;   
+    function publishDeposits(uint256 _newDepositTreeRoot) external onlyOperator {
+        emit DepositRootUpdated(_newDepositTreeRoot, depositTreeRoot);
+        depositTreeRoot = _newDepositTreeRoot;
     }
 
     /// @dev Helper method to add pending deposits
     function addPendingDeposit(uint pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce) internal {
-        pendingDeposits[pendingDepositCount] = PendingDeposit(pubKey_x, pubKey_y, token, balance, nonce);
-        pendingDepositCount = pendingDepositCount.add(1);
+        pendingDeposits.push(PendingDeposit(pubKey_x, pubKey_y, token, balance, nonce));
         //TODO: Merkle Tree insertion depositTree.Insert(abi.encode(pubKey_x, pubKey_y, token, balance, nonce));
-    }
-
-    /// @notice Helper method to add pending deposits
-    function getDepositRoot() public returns (uint256) {
-        
     }
 }
