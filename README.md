@@ -34,7 +34,7 @@ npm run test
 The smart contract stores the root of the current deposits tree `Td`, and an array of pending deposits.
 Users create new pending deposits by: setting a token allowance to the contract, then calling the `RollupNC` deposit function.
 
-The operator:
+The coordinator:
 - creates a merkle tree `T1` where leaves are the current pending deposits.
 - superimposes `T1` to `Td` creating a new deposits tree `Tn`.
 - posts to the smart contract the root of `Tn` , and a snark proof of the superimposition of `T1`.
@@ -45,3 +45,7 @@ The smart contract verifies the snark proof, updates the current deposits tree r
 
 Limit depth 24.
 Skip on IV (empty hashes).
+Start with depth 0. 
+
+Pending deposits gather until coordinator processes them. 
+The coordinator gets the current deposits, 
