@@ -28,3 +28,20 @@ npm run deploy-mimc
 npm run rpc
 npm run test
 ```
+
+## Deposit Mechanism
+
+The smart contract stores the root of the current deposits tree `Td`, and an array of pending deposits.
+Users create new pending deposits by: setting a token allowance to the contract, then calling the `RollupNC` deposit function.
+
+The operator:
+- creates a merkle tree `T1` where leaves are the current pending deposits.
+- superimposes `T1` to `Td` creating a new deposits tree `Tn`.
+- posts to the smart contract the root of `Tn` , and a merkle proof of the superimposition of `T1`.
+
+The smart contract verifies the merkle proof, updates the current deposits tree root, and clears the pending deposits array.
+
+### Tree superimposition
+
+Limit depth 24.
+Skip on IV (empty hashes).
