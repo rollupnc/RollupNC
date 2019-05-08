@@ -1,88 +1,99 @@
 pragma solidity >=0.4.21;
 
-import './TransferVerifier.sol';
-import './WithdrawVerifier.sol';
+import "./Verifier.sol";
+import "./dependencies/MiMCMerkle.sol";
 
-contract MiMC {
+contract IVerifier {
+
+    function verifyProof(
+        uint[2] memory,
+        uint[2][2] memory,
+        uint[2] memory,
+        uint[3] memory
+    ) view public returns(bool) {}
+
+}
+
+contract IMiMC {
 
     function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
 
 }
 
+contract IMiMCMerkle {
+
+    function verifyMerkleProof(
+        uint256,
+        uint256[2] memory,
+        uint256[2] memory, 
+        uint256) 
+    public view returns(bool) {}
+    function hashTx(uint[6] memory array) public returns(uint) {}
+
+}
+
 contract RollupNC {
 
-    TransferVerifier public transferVerifier;
-    WithdrawVerifier public withdrawVerifier;
-    // MiMC public mimc; //Rinkeby: 0xbB9da456E4918A450A936dc952F6f5d68EB76F69
+    IVerifier public verifier;
+    IMiMC public mimc; 
+    IMiMCMerkle public mimcMerkle;
 
     uint256 merkleRoot;
-    address operator;
+    address coordinator;
+    mapping(uint256 => uint256) txRootToOldBalanceRoot;
 
     constructor(
-        // address _mimcContractAddr,
-        address _transferVerifierContractAddr,
-        address _withdrawVerifierContractAddr
+        address _verifierContractAddr,
+        address _mimcContractAddr, 
+        address _mimcMerkleContractAddr
     ) public {
-        transferVerifier = TransferVerifier(_transferVerifierContractAddr);
-        withdrawVerifier = WithdrawVerifier(_withdrawVerifierContractAddr);
-        // mimc = MiMC(_mimcContractAddr); 
-        operator = msg.sender;
+        verifier = IVerifier(_verifierContractAddr);
+        mimc = IMiMC(_mimcContractAddr); 
+        mimcMerkle = IMiMCMerkle(_mimcMerkleContractAddr);
+        coordinator = msg.sender;
     }
 
-    modifier onlyOperator(){
-        assert(msg.sender == operator);
+    modifier onlyCoordinator(){
+        assert(msg.sender == coordinator);
         _;
     }
 
-    function snarkTransition (
+    function updateState(
             uint[2] memory a,
             uint[2][2] memory b,
             uint[2] memory c,
-            uint[2] memory input) public onlyOperator {
+            uint[3] memory input
+        ) public onlyCoordinator {
         
         //validate proof
-        require(transferVerifier.verifyProof(a,b,c,input));
+        require(verifier.verifyProof(a,b,c,input),
+        "SNARK proof is invalid");
         
         // update merkle root
         merkleRoot = input[0];
+        txRootToOldBalanceRoot[input[1]] = input[2];
     }
 
-    // function withdraw(
-    //     bytes memory pubkey_from,
-    //     bytes memory pubkey_to,
-    //     uint amount,
-    //     uint token_type_from, 
-    //     uint256 tx_merkle_root, 
-    //     uint256[24] memory proof, 
-    //     bool[24] memory path, 
-    //     uint256 leaf,
-    //     address recipient
-    // ) public{
-    //     require(pubkey_to.equals(bytes("0")));
-    //     require(membership_proof(tx_merkle_root,leaf,proof,path));
-
-    // }
-
-    // function membership_proof(
-    //     uint256 root, 
-    //     uint256 leaf, 
-    //     uint256[24] memory proof, 
-    //     bool[24] memory path
-    // ) internal view returns(bool) {
-    //     for (uint i=0;i<proof.length;i++) {
-    //         if (path[i]) {
-    //             leaf = hash(leaf, proof[i]);
-    //         }
-    //         else {
-    //             leaf = hash(proof[i], leaf);
-    //         }
-    //     }
-    //     return(leaf == root);
-    // }
-
-    // function hash(uint256 in_x, uint256 in_k) public view returns(uint256) {
-    //     uint256 res = mimc.MiMCpe7(in_x,in_k);
-    //     return(res);
-    // }
+    function withdraw(
+        uint[2] memory pubkey_from,
+        uint[2] memory pubkey_to,
+        uint amount,
+        uint token_type_from, 
+        uint[2] memory proof, 
+        uint[2] memory position, 
+        uint txRoot,
+        address recipient
+    ) public{
+        require(pubkey_to[0] == 0 && pubkey_to[1] == 0,
+            "withdraw must be made to zero address");
+        uint txLeaf = mimcMerkle.hashTx([
+            pubkey_from[0], pubkey_from[1], 
+            pubkey_to[0], pubkey_to[1],
+            amount, token_type_from
+        ]);
+        require(mimcMerkle.verifyMerkleProof(
+            txLeaf, position, proof, txRoot),
+            "transaction does not exist in specified transactions root");
+    }
 
 }

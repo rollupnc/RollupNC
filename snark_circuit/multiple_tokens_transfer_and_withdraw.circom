@@ -250,8 +250,6 @@ template Main(n,m) {
     new_final_sender.nonce <== nonce_from[2**m - 1] + 1;
     new_final_sender.token_type <== token_type_from[2**m - 1];
 
-    new_final_sender.out === 3081052579082236331047773283004689901662848153055788356430773148886112469168
-
     component new_merkle_root_from_final_sender = GetMerkleRoot(n);
     new_merkle_root_from_final_sender.leaf <== new_final_sender.out;
     for (var j = 0; j < n; j++){
