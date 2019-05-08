@@ -54,14 +54,21 @@ const txArray = txLeaf.generateTxLeafArray(
     from_x, from_y, to_x, to_y, amounts, tx_token_types
 )
 
+console.log("txLeafArray", txArray)
+
 const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
 const txTree = merkle.treeFromLeafArray(txLeafHashes)
-// const txRoot = merkle.rootFromLeafArray(txLeafHashes)
+
+const txRoot = merkle.rootFromLeafArray(txLeafHashes)
+console.log("txRoot", txRoot)
+
 // const txPos = merkle.generateMerklePosArray(TX_DEPTH)
 const txProofs = new Array(2**TX_DEPTH)
 for (jj = 0; jj < 2**TX_DEPTH; jj++){
     txProofs[jj] = merkle.getProof(jj, txTree, txLeafHashes)
 }
+
+console.log("txProofArray", txProofs)
 
 const signatures = txLeaf.signTxLeafHashArray(
     txLeafHashes, 
