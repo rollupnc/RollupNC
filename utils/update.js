@@ -13,7 +13,7 @@ module.exports = {
     processTxArray: function(
         tx_depth,
         pubKeys,
-        balanceLeafArray,
+        balanceLeafArrayReceiver,
         from_accounts_idx,
         to_accounts_idx,
         amounts,
@@ -23,11 +23,9 @@ module.exports = {
 
         txPosArray = merkle.generateMerklePosArray(tx_depth)
 
-        intermediateRoots = new Array(2**tx_depth)
+        intermediateRoots = new Array(2**(tx_depth+1))
 
         fromProofs = new Array(2**tx_depth)
-        toProofs = new Array(2**tx_depth)
-        newFromProofs = new Array(2**tx_depth)
         newToProofs = new Array(2**tx_depth)
 
         fromPosArray = new Array(2**tx_depth)
@@ -65,42 +63,44 @@ module.exports = {
 
         const txProofs = merkle.generateMerkleProofArray(txTree, txLeafHashes)
         
-        var balanceLeafHashArray = balance.hashBalanceLeafArray(balanceLeafArray)
+        var balanceLeafHashArrayReceiver = balance.hashBalanceLeafArray(balanceLeafArrayReceiver)
         
-        var balanceTree = merkle.treeFromLeafArray(balanceLeafHashArray)
-        const originalState = merkle.rootFromLeafArray(balanceLeafHashArray)
+        var balanceTreeReceiver = merkle.treeFromLeafArray(balanceLeafHashArrayReceiver)
+        const originalState = merkle.rootFromLeafArray(balanceLeafHashArrayReceiver)
 
         intermediateRoots[0] = originalState
 
         for (k = 0; k < 2**tx_depth; k++){
 
-            nonceFromArray[k] = balanceLeafArray[from_accounts_idx[k]]['nonce']
-            nonceToArray[k] = balanceLeafArray[to_accounts_idx[k]]['nonce']
+            nonceFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['nonce']
+            nonceToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['nonce']
     
-            tokenBalanceFromArray[k] = balanceLeafArray[from_accounts_idx[k]]['balance']
-            tokenBalanceToArray[k] = balanceLeafArray[to_accounts_idx[k]]['balance']
-            tokenTypeFromArray[k] = balanceLeafArray[from_accounts_idx[k]]['token_type']
-            tokenTypeToArray[k] = balanceLeafArray[to_accounts_idx[k]]['token_type']
+            tokenBalanceFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['balance']
+            tokenBalanceToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['balance']
+            tokenTypeFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['token_type']
+            tokenTypeToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['token_type']
 
             fromPosArray[k] = merkle.idxToBinaryPos(from_accounts_idx[k], tx_depth)
             toPosArray[k] = merkle.idxToBinaryPos(to_accounts_idx[k], tx_depth)
 
-            fromProofs[k] = merkle.getProof(from_accounts_idx[k], balanceTree, balanceLeafHashArray)
-            toProofs[k] = merkle.getProof(to_accounts_idx[k], balanceTree, balanceLeafHashArray)    
+            fromProofs[k] = merkle.getProof(from_accounts_idx[k], balanceTreeReceiver, balanceLeafHashArrayReceiver)
 
             output = module.exports.processTx(
                 k, txArray, txProofs[k], signatures[k], txRoot,
-                from_accounts_idx[k], to_accounts_idx[k], balanceLeafArray,
-                fromProofs[k], toProofs[k], intermediateRoots[k]
+                from_accounts_idx[k], to_accounts_idx[k], balanceLeafArrayReceiver,
+                fromProofs[k], intermediateRoots[2*k]
             )
 
-            intermediateRoots[k + 1] = output['newRoot'] ;
-            balanceTree = output['newTree'];
+            intermediateRoots[2*k + 1] = output['newRootSender'] ;
+            intermediateRoots[2*k + 2] = output['newRootReceiver'] ;
+            balanceTreeSender = output['newTreeSender'];
+            balanceTreeReceiver = output['newTreeReceiver'];
 
-            balanceLeafArray = output['newLeafArray'];
-            balanceLeafHashArray = output['newLeafHashArray'];
+            balanceLeafArraySender = output['newLeafArraySender'];
+            balanceLeafHashArraySender = output['newLeafHashArraySender'];
+            balanceLeafArrayReceiver = output['newLeafArrayReceiver'];
+            balanceLeafHashArrayReceiver = output['newLeafHashArrayReceiver'];
 
-            newFromProofs[k] = output['newFromProof'];
             newToProofs[k] = output['newToProof'];
 
         }
@@ -113,11 +113,9 @@ module.exports = {
 
             current_state: originalState.toString(), 
 
-            intermediate_roots: module.exports.stringifyArray(intermediateRoots.slice(0, 2**tx_depth)),
-            paths2old_root_from: module.exports.stringifyArrayOfArrays(fromProofs),
-            paths2old_root_to: module.exports.stringifyArrayOfArrays(toProofs),
-            paths2new_root_from: module.exports.stringifyArrayOfArrays(newFromProofs),
-            paths2new_root_to: module.exports.stringifyArrayOfArrays(newToProofs),
+            intermediate_roots: module.exports.stringifyArray(intermediateRoots.slice(0, 2**(tx_depth + 1))),
+            paths2root_from: module.exports.stringifyArrayOfArrays(fromProofs),
+            paths2root_to: module.exports.stringifyArrayOfArrays(newToProofs),
             paths2root_from_pos: fromPosArray,
             paths2root_to_pos: toPosArray,
 
@@ -145,23 +143,23 @@ module.exports = {
     processTx: function(
         txIdx, txLeafArray, txProof, signature, txRoot,
         fromLeafIdx, toLeafIdx, balanceLeafArray,
-        fromProof, toProof, oldBalanceRoot
+        fromProof, oldBalanceRoot
     ){
 
-            // parse txLeaf
-            txDepth = txProof.length
-            const txLeaf = txLeafArray[txIdx]
-            txLeafHash = tx.hashTxLeafArray([txLeaf])[0]
 
-            txPos = merkle.idxToBinaryPos(txIdx, txDepth)
+            // parse txLeaf
+            txDepth = txProof.length //depth of tx tree
+            const txLeaf = txLeafArray[txIdx] //the transaction being processed
+            txLeafHash = tx.hashTxLeafArray([txLeaf])[0] // hash of tx being processed
+
+            txPos = merkle.idxToBinaryPos(txIdx, txDepth) //binary vector
 
             // parse balanceLeaves
-            // balDepth = fromProof.length
-            balDepth = 2;
-            const fromLeaf = balanceLeafArray[fromLeafIdx]
-            fromLeafHash = balance.hashBalanceLeafArray([fromLeaf])[0]
-            const toLeaf = balanceLeafArray[toLeafIdx]
-            toLeafHash = balance.hashBalanceLeafArray([toLeaf])[0]
+            balDepth = fromProof.length; // depth of balance tree
+            const fromLeaf = balanceLeafArray[fromLeafIdx] //sender account
+            fromLeafHash = balance.hashBalanceLeafArray([fromLeaf])[0] // hash of sender acct
+            const toLeaf = balanceLeafArray[toLeafIdx] //receiver account
+            toLeafHash = balance.hashBalanceLeafArray([toLeaf])[0] //hash of receiver acct
 
             //check tx existence
             assert(merkle.verifyProof(txLeafHash, txIdx, txProof, txRoot))
@@ -175,47 +173,64 @@ module.exports = {
             // nonce check
             module.exports.checkNonce(fromLeaf)
 
-            // check sender existence
+            // check sender existence in original root
             assert(merkle.verifyProof(fromLeafHash, fromLeafIdx, fromProof, oldBalanceRoot))
 
-            // check receiver existence
-            assert(merkle.verifyProof(toLeafHash, toLeafIdx, toProof, oldBalanceRoot))
+            // // check receiver existence in original root
+            // assert(merkle.verifyProof(toLeafHash, toLeafIdx, toProof, oldBalanceRoot))
 
             // get new leaves
-            var newFromLeaf
-            var newToLeaf
+            let newFromLeaf
+            let newToLeaf
             [newFromLeaf, newToLeaf] = module.exports.getNewLeaves(txLeaf, fromLeaf, toLeaf)
 
-            balanceLeafArray[fromLeafIdx] = newFromLeaf
-            balanceLeafArray[toLeafIdx] = newToLeaf
+            // update sender leaf to get first intermediate root
+            newLeafArraySender = balanceLeafArray.slice(0) //clone leaf array 
+            newLeafArraySender[fromLeafIdx] = newFromLeaf
 
-            newBalanceLeafHashArray = balance.hashBalanceLeafArray(balanceLeafArray)
+            newLeafHashArraySender = balance.hashBalanceLeafArray(newLeafArraySender)
+            newTreeSender = merkle.treeFromLeafArray(newLeafHashArraySender)
+            newRootSender = merkle.rootFromLeafArray(newLeafHashArraySender)
 
-            // get new root
-            newRoot = merkle.rootFromLeafArray(newBalanceLeafHashArray)
-            newTree = merkle.treeFromLeafArray(newBalanceLeafHashArray)
+            // get inclusion proof for receiver leaf using first intermediate root
+            newToProof = merkle.getProof(toLeafIdx, newTreeSender, newLeafHashArraySender)
 
-            newFromProof = merkle.getProof(fromLeafIdx, newTree, newBalanceLeafHashArray)
-            newToProof = merkle.getProof(toLeafIdx, newTree, newBalanceLeafHashArray)
+            // check receiver existence in first intermediate root
+            assert(merkle.verifyProof(toLeafHash, toLeafIdx, newToProof, newRootSender))
+
+            // update receiver leaf to get second intermediate root
+            newLeafArrayReceiver = newLeafArraySender.slice(0) //clone leaf array
+            newLeafArrayReceiver[toLeafIdx] = newToLeaf
+            newLeafHashArrayReceiver = balance.hashBalanceLeafArray(newLeafArrayReceiver)
+            newTreeReceiver = merkle.treeFromLeafArray(newLeafHashArrayReceiver)
+            newRootReceiver = merkle.rootFromLeafArray(newLeafHashArrayReceiver)
 
         return {
-            newRoot: newRoot,
-            newTree: newTree,
-            newLeafArray: balanceLeafArray,
-            newLeafHashArray: newBalanceLeafHashArray,
-            newFromProof: newFromProof,
-            newToProof: newToProof
+            newRootSender: newRootSender, //first intermediate root after updating sender
+            newRootReceiver: newRootReceiver, //second intermediate root after updating receiver
+            newTreeSender: newTreeSender, 
+            newTreeReceiver: newTreeReceiver,
+            newLeafArraySender: newLeafArraySender,
+            newLeafHashArraySender: newLeafHashArraySender,
+            newLeafArrayReceiver: newLeafArrayReceiver,
+            newLeafHashArrayReceiver: newLeafHashArrayReceiver,
+            newToProof: newToProof //inclusion proof for receiver in first intermediate root
         }
     },
 
     getNewLeaves: function(tx, fromLeaf, toLeaf){
-        newFromLeaf = fromLeaf
-        newFromLeaf['balance'] = fromLeaf['balance'] - tx['amount']
-        newFromLeaf['nonce'] = fromLeaf['nonce'] + 1
 
-        newToLeaf = toLeaf
+        fromLeafCopy = balance.getZeroLeaf()
+        toLeafCopy = balance.getZeroLeaf()
+
+        newFromLeaf = Object.assign(fromLeafCopy, fromLeaf)
+        newToLeaf = Object.assign(toLeafCopy, toLeaf)
+
+        newFromLeaf['balance'] = newFromLeaf['balance'] - tx['amount']
+        newFromLeaf['nonce'] = newFromLeaf['nonce'] + 1
+
         if (!account.isZeroAddress(toLeaf['pubKey_x'], toLeaf['pubKey_y'])){
-            newToLeaf['balance'] = toLeaf['balance'] + tx['amount']
+            newToLeaf['balance'] = newToLeaf['balance'] + tx['amount']
         }
         return [newFromLeaf, newToLeaf]
     },
