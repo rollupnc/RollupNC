@@ -105,6 +105,8 @@ module.exports = {
 
         }
 
+        console.log('newRoot', intermediateRoots[2**(tx_depth + 1)])
+
         return{
 
             tx_root: txRoot.toString(),

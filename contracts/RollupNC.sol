@@ -1,18 +1,8 @@
 pragma solidity >=0.4.21;
 
 import "./Verifier.sol";
-import "./dependencies/MiMCMerkle.sol";
+import "./WithdrawSigVerifier.sol";
 
-contract IVerifier {
-
-    function verifyProof(
-        uint[2] memory,
-        uint[2][2] memory,
-        uint[2] memory,
-        uint[3] memory
-    ) view public returns(bool) {}
-
-}
 
 contract IMiMC {
 
@@ -25,17 +15,16 @@ contract IMiMCMerkle {
     function verifyMerkleProof(
         uint256,
         uint256[2] memory,
-        uint256[2] memory, 
-        uint256) 
+        uint256[2] memory,
+        uint256)
     public view returns(bool) {}
     function hashTx(uint[6] memory array) public returns(uint) {}
 
 }
 
-contract RollupNC {
+contract RollupNC is Verifier, WithdrawSigVerifier {
 
-    IVerifier public verifier;
-    IMiMC public mimc; 
+    IMiMC public mimc;
     IMiMCMerkle public mimcMerkle;
 
     uint256 merkleRoot;
@@ -43,12 +32,10 @@ contract RollupNC {
     mapping(uint256 => uint256) txRootToOldBalanceRoot;
 
     constructor(
-        address _verifierContractAddr,
-        address _mimcContractAddr, 
+        address _mimcContractAddr,
         address _mimcMerkleContractAddr
     ) public {
-        verifier = IVerifier(_verifierContractAddr);
-        mimc = IMiMC(_mimcContractAddr); 
+        mimc = IMiMC(_mimcContractAddr);
         mimcMerkle = IMiMCMerkle(_mimcMerkleContractAddr);
         coordinator = msg.sender;
     }
@@ -66,7 +53,7 @@ contract RollupNC {
         ) public onlyCoordinator {
         
         //validate proof
-        require(verifier.verifyProof(a,b,c,input),
+        require(Verifier.verifyProof(a,b,c,input),
         "SNARK proof is invalid");
         
         // update merkle root
@@ -78,22 +65,32 @@ contract RollupNC {
         uint[2] memory pubkey_from,
         uint[2] memory pubkey_to,
         uint amount,
-        uint token_type_from, 
-        uint[2] memory proof, 
-        uint[2] memory position, 
+        uint token_type_from,
+        uint[2] memory proof,
+        uint[2] memory position,
         uint txRoot,
-        address recipient
+        address recipient,
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c
     ) public{
         require(pubkey_to[0] == 0 && pubkey_to[1] == 0,
             "withdraw must be made to zero address");
         uint txLeaf = mimcMerkle.hashTx([
-            pubkey_from[0], pubkey_from[1], 
+            pubkey_from[0], pubkey_from[1],
             pubkey_to[0], pubkey_to[1],
             amount, token_type_from
         ]);
         require(mimcMerkle.verifyMerkleProof(
             txLeaf, position, proof, txRoot),
             "transaction does not exist in specified transactions root");
+        uint[3] memory input = [pubkey_from[0], pubkey_from[1], (uint(recipient))];
+
+        require(WithdrawSigVerifier.verifyProof(
+            a, b, c, input),
+            "eddsa signature is not valid");
+
+        
     }
 
 }

@@ -1,5 +1,4 @@
 var MiMCMerkle = artifacts.require("./dependencies/MiMCMerkle.sol");
-var Verifier = artifacts.require("./Verifier.sol");
 var RollupNC = artifacts.require("./RollupNC.sol");
 const mimcGenContract = require("../circomlib/src/mimc_gencontract.js");
 
@@ -8,15 +7,11 @@ module.exports = async function(deployer, network, accounts) {
     console.log("MiMC address: " + mimc.options.address)
     await deployer.deploy(MiMCMerkle, mimc.options.address)
     .then(() => {
-        return deployer.deploy(Verifier)
-        .then(() => {
-            return deployer.deploy(
-                RollupNC, 
-                Verifier.address,
-                mimc.options.address,
-                MiMCMerkle.address
-            );
-        })
+        return deployer.deploy(
+            RollupNC, 
+            mimc.options.address,
+            MiMCMerkle.address
+        );
     })
 };
 
