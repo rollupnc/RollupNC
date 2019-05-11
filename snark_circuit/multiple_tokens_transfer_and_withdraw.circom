@@ -23,20 +23,14 @@ template Main(n,m) {
     // Merkle root of old balance tree
     signal input current_state;
 
-    // intermediate roots
-    signal private input intermediate_roots[2**m];
+    // intermediate roots (two for each tx)
+    signal private input intermediate_roots[2**(m+1)];
 
-    // Merkle proof for sender account in old balance tree
-    signal private input paths2old_root_from[2**m, n];
+    // Merkle proof for sender account in balance tree
+    signal private input paths2root_from[2**m, n];
 
-    // Merkle proof for receiver account in old balance tree
-    signal private input paths2old_root_to[2**m, n];
-
-    // Merkle proof for sender account in new balance tree
-    signal private input paths2new_root_from[2**m, n];
-
-    // Merkle proof for receiver account in new balance tree
-    signal private input paths2new_root_to[2**m, n];
+    // Merkle proof for receiver account in balance tree
+    signal private input paths2root_to[2**m, n];
 
     // binary vector indicating whether node in balance proof for sender account
     // is left or right 
@@ -76,9 +70,11 @@ template Main(n,m) {
     
     component txExistence[2**m - 1];
     component senderExistence[2**m - 1];
+    component newSender[2**m - 1];
+    component merkle_root_from_new_sender[2**m - 1];
     component receiverExistence[2**m - 1];
-    component newSenderExistence[2**m - 1];
-    component newReceiverExistence[2**m - 1];
+    component newReceiver[2**m - 1];
+    component merkle_root_from_new_receiver[2**m - 1];
 
     for (var i = 0; i < 2**m - 1; i++) {
 
@@ -102,9 +98,7 @@ template Main(n,m) {
         txExistence[i].R8y <== R8y[i];
         txExistence[i].S <== S[i];
     
-        // accounts existence check
-
-        // for sender address
+        // sender existence check
         senderExistence[i] = BalanceExistence(n);
         senderExistence[i].x <== from_x[i];
         senderExistence[i].y <== from_y[i];
@@ -112,24 +106,10 @@ template Main(n,m) {
         senderExistence[i].nonce <== nonce_from[i];
         senderExistence[i].token_type <== token_type_from[i];
 
-        senderExistence[i].balance_root <== intermediate_roots[i];
+        senderExistence[i].balance_root <== intermediate_roots[2*i];
         for (var j = 0; j < n; j++){
             senderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j];
-            senderExistence[i].paths2_root[j] <== paths2old_root_from[i, j];
-        }
-
-        // for receiver address
-        receiverExistence[i] = BalanceExistence(n);
-        receiverExistence[i].x <== to_x[i];
-        receiverExistence[i].y <== to_y[i];
-        receiverExistence[i].token_balance <== token_balance_to[i];
-        receiverExistence[i].nonce <== nonce_to[i];
-        receiverExistence[i].token_type <== token_type_to[i];
-
-        receiverExistence[i].balance_root <== intermediate_roots[i];
-        for (var j = 0; j < n; j++){
-            receiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
-            receiverExistence[i].paths2_root[j] <== paths2old_root_to[i, j];
+            senderExistence[i].paths2_root[j] <== paths2root_from[i, j];
         }
     
         // balance checks
@@ -143,43 +123,64 @@ template Main(n,m) {
             token_type_to[i] === token_type_from[i];
         }
 
-        // accounts updates and existence checks
-
-        // for new sender balance
         // subtract amount from sender balance; increase sender nonce 
-        newSenderExistence[i] = BalanceExistence(n);
-        newSenderExistence[i].x <== from_x[i];
-        newSenderExistence[i].y <== from_y[i];
-        newSenderExistence[i].token_balance <== token_balance_from[i] - amount[i];
-        newSenderExistence[i].nonce <== nonce_from[i] + 1;
-        newSenderExistence[i].token_type <== token_type_from[i];
+        newSender[i] = BalanceLeaf();
+        newSender[i].x <== from_x[i];
+        newSender[i].y <== from_y[i];
+        newSender[i].token_balance <== token_balance_from[i] - amount[i];
+        newSender[i].nonce <== nonce_from[i] + 1;
+        newSender[i].token_type <== token_type_from[i];
 
-        newSenderExistence[i].balance_root <== intermediate_roots[i + 1];
+        // get intermediate root from new sender leaf
+        merkle_root_from_new_sender[i] = GetMerkleRoot(n);
+        merkle_root_from_new_sender[i].leaf <== newSender[i].out;
         for (var j = 0; j < n; j++){
-            newSenderExistence[i].paths2_root_pos[j] <== paths2root_from_pos[i, j] ;
-            newSenderExistence[i].paths2_root[j] <== paths2new_root_from[i, j];
+            merkle_root_from_new_sender[i].paths2_root[j] <== paths2root_from[i, j];
+            merkle_root_from_new_sender[i].paths2_root_pos[j] <== paths2root_from_pos[i, j];
         }
 
-        // for new receiver balance
+        // check that intermediate root is consistent with input
+        merkle_root_from_new_sender[i].out === intermediate_roots[2*i  + 1];
+
+        // receiver existence check in intermediate root from new sender
+        receiverExistence[i] = BalanceExistence(n);
+        receiverExistence[i].x <== to_x[i];
+        receiverExistence[i].y <== to_y[i];
+        receiverExistence[i].token_balance <== token_balance_to[i];
+        receiverExistence[i].nonce <== nonce_to[i];
+        receiverExistence[i].token_type <== token_type_to[i];
+
+        receiverExistence[i].balance_root <== intermediate_roots[2*i + 1];
+        for (var j = 0; j < n; j++){
+            receiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
+            receiverExistence[i].paths2_root[j] <== paths2root_to[i, j];
+        }
+
         // add amount to receiver balance
         // if receiver is zero address, do not change balance
-        newReceiverExistence[i] = BalanceExistence(n);
-        newReceiverExistence[i].x <== to_x[i];
-        newReceiverExistence[i].y <== to_y[i];
+        newReceiver[i] = BalanceLeaf();
+        newReceiver[i].x <== to_x[i];
+        newReceiver[i].y <== to_y[i];
         if (to_x[i] == ZERO_ADDRESS_X && to_y[i] == ZERO_ADDRESS_Y){
-            newReceiverExistence[i].token_balance <== token_balance_to[i];
+            newReceiver[i].token_balance <== token_balance_to[i];
         }
         if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
-            newReceiverExistence[i].token_balance <== token_balance_to[i] + amount[i];
+            newReceiver[i].token_balance <== token_balance_to[i] + amount[i];
         }
-        newReceiverExistence[i].nonce <== nonce_to[i];
-        newReceiverExistence[i].token_type <== token_type_to[i];
+        newReceiver[i].nonce <== nonce_to[i];
+        newReceiver[i].token_type <== token_type_to[i];
 
-        newReceiverExistence[i].balance_root <== intermediate_roots[i + 1];
+        // get intermediate root from new receiver leaf
+        merkle_root_from_new_receiver[i] = GetMerkleRoot(n);
+        merkle_root_from_new_receiver[i].leaf <== newReceiver[i].out;
         for (var j = 0; j < n; j++){
-            newReceiverExistence[i].paths2_root_pos[j] <== paths2root_to_pos[i, j] ;
-            newReceiverExistence[i].paths2_root[j] <== paths2new_root_to[i, j];
+            merkle_root_from_new_receiver[i].paths2_root[j] <== paths2root_to[i, j];
+            merkle_root_from_new_receiver[i].paths2_root_pos[j] <== paths2root_to_pos[i, j];
         }
+
+        // check that intermediate root is consistent with input
+        merkle_root_from_new_receiver[i].out === intermediate_roots[2*i  + 2];
+
     }
 
     // final transactions existence and signature check
@@ -208,29 +209,14 @@ template Main(n,m) {
     final_sender_existence.y <== from_y[2**m - 1];
     final_sender_existence.token_balance <== token_balance_from[2**m - 1];
     final_sender_existence.nonce <== nonce_from[2**m - 1];
-    final_sender_existence.token_type <== token_type_from[2**m - 1]
+    final_sender_existence.token_type <== token_type_from[2**m - 1];
     
-    final_sender_existence.balance_root <== intermediate_roots[2**m - 1];
+    final_sender_existence.balance_root <== intermediate_roots[2**(m + 1) - 2];
 
     for (var jj = 0; jj < n; jj++){
         final_sender_existence.paths2_root_pos[jj] <== paths2root_from_pos[2**m - 1, jj] ;
-        final_sender_existence.paths2_root[jj] <== paths2old_root_from[2**m - 1, jj];
+        final_sender_existence.paths2_root[jj] <== paths2root_from[2**m - 1, jj];
     }
-
-    // final receiver existence check
-    component final_receiver_existence = BalanceExistence(n);
-    final_receiver_existence.x <== to_x[2**m - 1];
-    final_receiver_existence.y <== to_y[2**m - 1];
-    final_receiver_existence.token_balance <== token_balance_to[2**m - 1];
-    final_receiver_existence.nonce <== nonce_to[2**m - 1];
-    final_receiver_existence.token_type <== token_type_to[2**m - 1];
-    
-    final_receiver_existence.balance_root <== intermediate_roots[2**m - 1];
-    for (var j = 0; j < n; j++){
-        final_receiver_existence.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j] ;
-        final_receiver_existence.paths2_root[j] <== paths2old_root_to[2**m - 1, j];
-    }
-
 
     // final balance checks
     token_balance_from[2**m - 1] - amount[2**m - 1] <= token_balance_from[2**m - 1];
@@ -243,6 +229,7 @@ template Main(n,m) {
         token_type_to[2**m - 1] === token_type_from[2**m - 1];
     }
 
+    // update final sender leaf
     component new_final_sender = BalanceLeaf();
     new_final_sender.x <== from_x[2**m - 1];
     new_final_sender.y <== from_y[2**m - 1];
@@ -250,13 +237,29 @@ template Main(n,m) {
     new_final_sender.nonce <== nonce_from[2**m - 1] + 1;
     new_final_sender.token_type <== token_type_from[2**m - 1];
 
-    new_final_sender.out === 3081052579082236331047773283004689901662848153055788356430773148886112469168
-
-    component new_merkle_root_from_final_sender = GetMerkleRoot(n);
-    new_merkle_root_from_final_sender.leaf <== new_final_sender.out;
+    // get intermediate root from new final sender leaf
+    component merkle_root_from_new_final_sender = GetMerkleRoot(n);
+    merkle_root_from_new_final_sender.leaf <== new_final_sender.out;
     for (var j = 0; j < n; j++){
-        new_merkle_root_from_final_sender.paths2_root[j] <== paths2new_root_from[2**m - 1, j];
-        new_merkle_root_from_final_sender.paths2_root_pos[j] <== paths2root_from_pos[2**m - 1, j];
+        merkle_root_from_new_final_sender.paths2_root[j] <== paths2root_from[2**m - 1, j];
+        merkle_root_from_new_final_sender.paths2_root_pos[j] <== paths2root_from_pos[2**m - 1, j];
+    }
+
+    // check that intermediate root is consistent with input
+    merkle_root_from_new_final_sender.out === intermediate_roots[2**(m + 1) - 1]
+
+    // final receiver existence check using root from new final sender
+    component final_receiver_existence = BalanceExistence(n);
+    final_receiver_existence.x <== to_x[2**m - 1];
+    final_receiver_existence.y <== to_y[2**m - 1];
+    final_receiver_existence.token_balance <== token_balance_to[2**m - 1];
+    final_receiver_existence.nonce <== nonce_to[2**m - 1];
+    final_receiver_existence.token_type <== token_type_to[2**m - 1];
+    
+    final_receiver_existence.balance_root <== intermediate_roots[2**(m + 1) - 1];
+    for (var j = 0; j < n; j++){
+        final_receiver_existence.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j] ;
+        final_receiver_existence.paths2_root[j] <== paths2root_to[2**m - 1, j];
     }
 
     component new_final_receiver = BalanceLeaf();
@@ -271,17 +274,15 @@ template Main(n,m) {
     new_final_receiver.nonce <== nonce_to[2**m - 1];
     new_final_receiver.token_type <== token_type_to[2**m - 1];
 
-    component new_merkle_root_from_final_receiver = GetMerkleRoot(n);
-    new_merkle_root_from_final_receiver.leaf <== new_final_receiver.out;
+    component merkle_root_from_new_final_receiver = GetMerkleRoot(n);
+    merkle_root_from_new_final_receiver.leaf <== new_final_receiver.out;
     for (var j = 0; j < n; j++){
-        new_merkle_root_from_final_receiver.paths2_root[j] <== paths2new_root_to[2**m - 1, j];
-        new_merkle_root_from_final_receiver.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j];
+        merkle_root_from_new_final_receiver.paths2_root[j] <== paths2root_to[2**m - 1, j];
+        merkle_root_from_new_final_receiver.paths2_root_pos[j] <== paths2root_to_pos[2**m - 1, j];
     }
 
-    new_merkle_root_from_final_sender.out === new_merkle_root_from_final_receiver.out;   
-
     // circuit outputs new balance root
-    out <== new_merkle_root_from_final_sender.out;
+    out <== merkle_root_from_new_final_receiver.out;
 
 }
 

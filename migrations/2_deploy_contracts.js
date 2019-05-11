@@ -1,24 +1,37 @@
-var Migrations = artifacts.require("./Migrations.sol");
-var Pairing = artifacts.require("./Pairing.sol");
-var TransferVerifier = artifacts.require("./TransferVerifier.sol");
-var WithdrawVerifier = artifacts.require("./WithdrawVerifier.sol");
+var MiMCMerkle = artifacts.require("./dependencies/MiMCMerkle.sol");
 var RollupNC = artifacts.require("./RollupNC.sol");
+const mimcGenContract = require("../circomlib/src/mimc_gencontract.js");
+
 var TestToken = artifacts.require("./TestToken.sol");
 var DepositManager = artifacts.require("./DepositManager.sol");
 var TokenRegistry = artifacts.require("./TokenRegistry.sol");
 
-module.exports = function(deployer, accounts) {
-    deployer.deploy(Migrations);
-    deployer.deploy(Pairing);
-    deployer.deploy(TestToken);
-    deployer.link(Pairing, [TransferVerifier,WithdrawVerifier]);
-    deployer.deploy(TransferVerifier).then(() => {
-      return deployer.deploy(WithdrawVerifier);
-    }).then(() => {
-      return deployer.deploy(TokenRegistry)
-    }).then(() => {
-      return deployer.deploy(DepositManager, TokenRegistry.address)
-    }).then(() => {
-      return deployer.deploy(RollupNC, TransferVerifier.address, WithdrawVerifier.address, DepositManager.address);
+module.exports = async function(deployer, network, accounts) {
+    const mimc = await deployMimc(accounts[0]);
+    await deployer.deploy(TestToken);
+    await deployer.deploy(TokenRegistry);
+    await deployer.deploy(DepositManager, TokenRegistry.address);
+
+    console.log("MiMC address: " + mimc.options.address)
+    await deployer.deploy(MiMCMerkle, mimc.options.address)
+    .then(() => {
+        return deployer.deploy(
+            RollupNC, 
+            mimc.options.address,
+            MiMCMerkle.address,
+            DepositManager.address
+        );
+    })
+};
+
+async function deployMimc(account) {
+    const mimc = new web3.eth.Contract(mimcGenContract.abi);
+    const SEED = "mimc";
+
+    return await mimc.deploy({
+        data: mimcGenContract.createCode(SEED, 91)
+    }).send({
+        gas: 1500000,
+        from: account
     });
-  };
+}

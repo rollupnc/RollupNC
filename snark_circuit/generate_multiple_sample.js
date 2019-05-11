@@ -56,7 +56,9 @@ const txArray = txLeaf.generateTxLeafArray(
 
 const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
 const txTree = merkle.treeFromLeafArray(txLeafHashes)
+
 // const txRoot = merkle.rootFromLeafArray(txLeafHashes)
+
 // const txPos = merkle.generateMerklePosArray(TX_DEPTH)
 const txProofs = new Array(2**TX_DEPTH)
 for (jj = 0; jj < 2**TX_DEPTH; jj++){

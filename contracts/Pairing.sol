@@ -1,4 +1,5 @@
 pragma solidity >=0.4.17;
+
 library Pairing {
     struct G1Point {
         uint X;
