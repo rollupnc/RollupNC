@@ -14,16 +14,16 @@ contract DepositManager {
     uint256 depositTreeRoot;
     TokenRegistry tokenRegistry;
 
-    struct PendingDeposit {
-        uint pubKey_x;
-        uint pubKey_y;
-        uint token;
-        uint balance;
-        uint nonce;
+    event PendingDeposit (
+        uint pubKey_x,
+        uint pubKey_y,
+        uint token,
+        uint balance,
+        uint nonce
         // bytes32 root;
-    }
+    );
 
-    PendingDeposit[] pendingDeposits;
+    uint256[] pendingDeposits;
     address operator;
 
     event DepositAdded(address indexed sender, uint indexed pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce);
@@ -67,7 +67,9 @@ contract DepositManager {
 
     /// @dev Helper method to add pending deposits
     function addPendingDeposit(uint pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce) internal {
-        pendingDeposits.push(PendingDeposit(pubKey_x, pubKey_y, token, balance, nonce));
+        emit PendingDeposit(pubKey_x, pubKey_y, token, balance, nonce);
+        // TODO: use MIMC
+        pendingDeposits.push(uint256(keccak256(abi.encode(pubKey_x, pubKey_y, token, balance, nonce))));
         //TODO: Merkle Tree insertion depositTree.Insert(abi.encode(pubKey_x, pubKey_y, token, balance, nonce));
     }
 }
