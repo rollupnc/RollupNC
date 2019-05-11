@@ -26,21 +26,22 @@ contract("RollupNC Deposit", async accounts => {
     result = await depositInstance.depositTokens(rollupPubKey_x, rollupPubKey_y, tokenIndex, balance, nonce, { from: depositor });
 
     // Ensure deposit event was emitted correctly
-    eventName = result.logs[0].event;
+    depositAddedEvent = result.logs[1];
+    eventName = depositAddedEvent.event;
     logArgs = {
-      hash: result.logs[0].args[0],
-      pubKey_x: result.logs[0].args[1].toNumber(),
-      pubKey_y: result.logs[0].args[2].toNumber(),
-      tokenAddr: result.logs[0].args[3].toString(),
-      amount: result.logs[0].args[4].toNumber(),
+      sender: depositAddedEvent.args[0],
+      pubKey_x: depositAddedEvent.args[1].toNumber(),
+      pubKey_y: depositAddedEvent.args[2].toNumber(),
+      tokenAddr: depositAddedEvent.args[3].toString(),
+      amount: depositAddedEvent.args[4].toNumber(),
     }
 
-    // assert.equal(eventName, "DepositAdded");
-    // assert.equal(logArgs.sender, depositor);
-    // assert.equal(logArgs.pubKey_x, rollupPubKey_x);
-    // assert.equal(logArgs.pubKey_y, rollupPubKey_y);
-    // assert.equal(logArgs.tokenAddr, tokenIndex);
-    // assert.equal(logArgs.amount, balance);
+    assert.equal(eventName, "DepositAdded");
+    assert.equal(logArgs.sender, depositor);
+    assert.equal(logArgs.pubKey_x, rollupPubKey_x);
+    assert.equal(logArgs.pubKey_y, rollupPubKey_y);
+    assert.equal(logArgs.tokenAddr, tokenIndex);
+    assert.equal(logArgs.amount, balance);
   });
 
   it("should fail without any token allowance", async () => {
