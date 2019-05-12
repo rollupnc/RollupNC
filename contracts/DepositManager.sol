@@ -14,8 +14,6 @@ contract DepositManager {
     uint256[] pendingDeposits;
     // current merkle root of deposit tree
     uint256 depositTreeRoot;
-    // TODO: should we store the current count, or take it in as a parametre when manipulating the tree?
-    uint256 depositCount;
 
     event PendingDepositAdded(address indexed sender, uint256 indexed pubKey_x, uint256 pubKey_y, uint256 token, uint256 balance, uint256 nonce);
     event DepositRootUpdated(uint256 indexed newRoot, uint256 indexed oldRoot);
