@@ -18,7 +18,7 @@ contract DepositManager {
     uint256[] pendingDeposits;
     address coordinator;
 
-    event PendingDeposit(uint pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce);
+    event PendingDeposit(uint indexed pubKey_x, uint indexed pubKey_y, uint indexed token, uint balance, uint nonce);
     event DepositAdded(address indexed sender, uint indexed pubKey_x, uint pubKey_y, uint token, uint balance, uint nonce);
     event DepositRootUpdated(uint256 indexed newRoot, uint256 indexed oldRoot);
     event TokenRegistered(address tokenAddr, uint tokenIndex);
