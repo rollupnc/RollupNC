@@ -10,11 +10,12 @@ module.exports = async function(deployer, network, accounts) {
     const mimc = await deployMimc(accounts[0]);
     await deployer.deploy(TestToken);
     await deployer.deploy(TokenRegistry);
-    await deployer.deploy(DepositManager, TokenRegistry.address);
 
     console.log("MiMC address: " + mimc.options.address)
     await deployer.deploy(MiMCMerkle, mimc.options.address)
-    .then(() => {
+    .then(async () => {
+        await deployer.deploy(DepositManager, MiMCMerkle.address, TokenRegistry.address);
+
         return deployer.deploy(
             RollupNC, 
             mimc.options.address,
