@@ -2,13 +2,11 @@ pragma solidity >=0.4.21;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-// import './MerkleTree.sol';
 import './TokenRegistry.sol';
 import "./RollupNC.sol";
 
 contract DepositManager {
     using SafeMath for uint;
-    // using MerkleTree for MerkleTree.Data;
 
     IMiMCMerkle public mimcMerkle;
     address coordinator;
@@ -54,8 +52,19 @@ contract DepositManager {
     /// @notice coordinator publishes deposits root after incorporating new deposits.
     /// @dev Will replace params these with the proper inputs and proof.
     /// @param _newDepositTreeRoot New root for deposit merkle tree
-    /// TODO Validate Proof
     function publishDeposits(uint256 _newDepositTreeRoot) external onlyCoordinator {
+        // TODO: verify proof that pending deposits are included in new tree
+        // TODO: verify proof that old deposits still part of the tree
+
+        /*
+            mimcMerkle.verifyMerkleProof(
+                uint256 _leaf,
+                uint256[2] memory _position,
+                uint256[2] memory _proof,
+                uint256 _claimedRoot
+            ) public view returns(bool)
+        */
+
         depositTreeRoot = _newDepositTreeRoot;
         emit DepositRootUpdated(_newDepositTreeRoot, depositTreeRoot);
 
