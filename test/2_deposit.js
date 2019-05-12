@@ -26,7 +26,7 @@ contract("RollupNC Deposit", async accounts => {
     result = await depositInstance.depositTokens(rollupPubKey_x, rollupPubKey_y, tokenIndex, balance, nonce, { from: depositor });
 
     // Ensure deposit event was emitted correctly
-    depositAddedEvent = result.logs[1];
+    depositAddedEvent = result.logs[0];
     eventName = depositAddedEvent.event;
     logArgs = {
       sender: depositAddedEvent.args[0],
@@ -36,7 +36,7 @@ contract("RollupNC Deposit", async accounts => {
       amount: depositAddedEvent.args[4].toNumber(),
     }
 
-    assert.equal(eventName, "DepositAdded");
+    assert.equal(eventName, "PendingDepositAdded");
     assert.equal(logArgs.sender, depositor);
     assert.equal(logArgs.pubKey_x, rollupPubKey_x);
     assert.equal(logArgs.pubKey_y, rollupPubKey_y);
