@@ -4,14 +4,16 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './TokenRegistry.sol';
 import "./RollupNC.sol";
+import "./MerkleTree.sol";
 
 contract DepositManager {
-    using SafeMath for uint;
+    using SafeMath for uint256;
+    using MerkleTree for MerkleTree.Data;
 
     IMiMCMerkle public mimcMerkle;
     address coordinator;
     TokenRegistry tokenRegistry;
-    uint256[] pendingDeposits;
+    MerkleTree.Data pendingDeposits;
     // current merkle root of deposit tree
     uint256 depositTreeRoot;
 
@@ -42,7 +44,8 @@ contract DepositManager {
         require(tokenContract.allowance(msg.sender, address(this)) >= balance, "Not enough allowance");
         require(tokenContract.transferFrom(msg.sender, address(this), balance), "Token transfer failed");
 
-        pendingDeposits.push(mimcMerkle.hashTx([uint256(msg.sender), pubKey_x, pubKey_y, token, balance, nonce]));
+        // TODO: match deposit leaf format, without msg sender
+        pendingDeposits.Insert(mimcMerkle.hashTx([uint256(msg.sender), pubKey_x, pubKey_y, token, balance, nonce]));
 
         emit PendingDepositAdded(msg.sender, pubKey_x, pubKey_y, token, balance, nonce);
     }
@@ -51,7 +54,6 @@ contract DepositManager {
     /// @dev Will replace params these with the proper inputs and proof.
     /// @param _newDepositTreeRoot New root for deposit merkle tree
     function publishDeposits(uint256 _newDepositTreeRoot) external onlyCoordinator {
-        // TODO: verify proof that pending deposits are included in new tree
         // TODO: verify proof that old deposits still part of the tree
 
         /*
