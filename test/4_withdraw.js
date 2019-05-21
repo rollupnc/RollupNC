@@ -14,6 +14,7 @@ contract("RollupNC Withdraw", async accounts => {
     0,
     0
   ]
+  const nonce = 0;
   const amount = 500;
   const token_type_from = 10;
   const proof = [
@@ -23,23 +24,17 @@ contract("RollupNC Withdraw", async accounts => {
   const position = [1, 0]
   const txRoot = "149126198147162084281232535967801344773039936115368629187002798446712412021"
   const recipient = "0xC33Bdb8051D6d2002c0D80A1Dd23A1c9d9FC26E4"
-
   const a = [
-    "0x0d3772db6cc4d2b1a4025d700206c1fd0d04123c57b225514d495ceac2d003e8", 
-    "0x059fa3f88b05a429eafbdce88c356d98f8c56649236166b59beb38758e195844"
-  ]
-
+    "0x24da287f055f2e76488ff77064decffa83e13ed4e4ad2ee44d4a1be6a7322b41", 
+    "0x2669b601920c8a11cb9c1020c7c0aac55ca0d9e3737164acc831b6986dba302d"]
   const b = [
-    ["0x10814e3178070cdc64fb425339ae573904f89a2d9415574786ef8567dda2c35a", 
-    "0x1c278bf0eb57839134205593e38022badd9d3886097232457630879365d351cf"],
-    ["0x1db5070c455a7e70d46bc924dc9a83eb0d5b714bed13c0fab773e4385376cac6", 
-    "0x12e5683544ef3d8448e6fc7932d19b61160a94eac76c0b59b983caffe1cfbcea"]
-  ]
-
+    ["0x07b4e64317b68ff3cf82d9c3211a6abe1933f212e44d5d5405c4823c44da77b3", 
+    "0x0a38f9bcda6de56ac1bf09d93f2909946e773fa7de8f759f8594bc6786cfda32"],
+    ["0x177019cb641cb8575f9c6ef2b865d60d3437384f13bd311c69fa292da8f08ef1", 
+    "0x1c404343b258e15d3f41b6959ea68edd0959ca62faa9a5cfbcc6667295c6644d"]]
   const c = [
-    "0x08da1d82340d24e7482d330290a7a72b38bbda66334f9acf0257e38e9ff2b01a", 
-    "0x0b288814628f4e9b4c1b3bcf736f88fdc31b6c50705d5d49a21d38fbc071b775"
-  ]
+    "0x12ba49b6986c922dbaf6f2cf3275419f01609efef6ec556ae1a2a0fae044741e", 
+    "0x139ea53ae557c85f1d62e34fab0065b74309db7c3b28f14542c0b7e37a0da9c5"]
 
   // it("should reject invalid withdrawals", async () => {
 
@@ -48,8 +43,8 @@ contract("RollupNC Withdraw", async accounts => {
   it("should accept valid withdrawals", async () => {
     let rollupnc = await RollupNC.deployed();
     let validWithdraw = await rollupnc.withdraw(
-          pubkey_from, pubkey_to, amount, token_type_from, 
-          proof, position, txRoot, recipient,
+          pubkey_from, pubkey_to, [nonce, amount, token_type_from], 
+          [position, proof], txRoot, recipient,
           a, b, c
         );
     assert(validWithdraw, "invalid withdraw");

@@ -64,10 +64,8 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
     function withdraw(
         uint[2] memory pubkey_from,
         uint[2] memory pubkey_to,
-        uint amount,
-        uint token_type_from,
-        uint[2] memory proof,
-        uint[2] memory position,
+        uint[3] memory txInfo, //[nonce, amount, token_type_from]
+        uint[2][2] memory positionAndProof, //[[position], [proof]]
         uint txRoot,
         address recipient,
         uint[2] memory a,
@@ -79,15 +77,14 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
         uint txLeaf = mimcMerkle.hashTx([
             pubkey_from[0], pubkey_from[1],
             pubkey_to[0], pubkey_to[1],
-            amount, token_type_from
+            txInfo[1], txInfo[2]
         ]);
         require(mimcMerkle.verifyMerkleProof(
-            txLeaf, position, proof, txRoot),
+            txLeaf, positionAndProof[0], positionAndProof[1], txRoot),
             "transaction does not exist in specified transactions root");
-        uint[3] memory input = [pubkey_from[0], pubkey_from[1], (uint(recipient))];
 
         require(WithdrawSigVerifier.verifyProof(
-            a, b, c, input),
+            a, b, c, [pubkey_from[0], pubkey_from[1], txInfo[0], txRoot, (uint(recipient))]),
             "eddsa signature is not valid");
 
         
