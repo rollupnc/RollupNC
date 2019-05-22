@@ -10,10 +10,6 @@ contract("RollupNC Withdraw", async accounts => {
     "5188413625993601883297433934250988745151922355819390722918528461123462745458",
     "12688531930957923993246507021135702202363596171614725698211865710242486568828"
   ]
-  const pubkey_to = [
-    0,
-    0
-  ]
   const nonce = 0;
   const amount = 500;
   const token_type_from = 10;
@@ -25,16 +21,16 @@ contract("RollupNC Withdraw", async accounts => {
   const txRoot = "149126198147162084281232535967801344773039936115368629187002798446712412021"
   const recipient = "0xC33Bdb8051D6d2002c0D80A1Dd23A1c9d9FC26E4"
   const a = [
-    "0x24da287f055f2e76488ff77064decffa83e13ed4e4ad2ee44d4a1be6a7322b41", 
-    "0x2669b601920c8a11cb9c1020c7c0aac55ca0d9e3737164acc831b6986dba302d"]
+    "0x096ed4c35159f0c371729082cc18d323135be5ae410fb4ba313595a666ed530c", 
+    "0x2995f1640c8d4da98cde2ef61af64b2927c95c2946455247877643cca3b39db6"]
   const b = [
-    ["0x07b4e64317b68ff3cf82d9c3211a6abe1933f212e44d5d5405c4823c44da77b3", 
-    "0x0a38f9bcda6de56ac1bf09d93f2909946e773fa7de8f759f8594bc6786cfda32"],
-    ["0x177019cb641cb8575f9c6ef2b865d60d3437384f13bd311c69fa292da8f08ef1", 
-    "0x1c404343b258e15d3f41b6959ea68edd0959ca62faa9a5cfbcc6667295c6644d"]]
+    ["0x1adbee8bcfa45824a5ebe904176b4f161282fbea31ff5954c7e49466f38e295f", 
+    "0x249ba84b42ab6c8d0bf91b9d9f77069ba1c16f8d446eab203480c82819cea03d"],
+    ["0x085780756487e6ed337d5a7cb362afaec168bd762df5ce93342894e1ca6dcdea", 
+    "0x16deb6ed5cfe8c6457a9e5bd041fd8fc3e63efe88011a6252bea3e048f1b5737"]]
   const c = [
-    "0x12ba49b6986c922dbaf6f2cf3275419f01609efef6ec556ae1a2a0fae044741e", 
-    "0x139ea53ae557c85f1d62e34fab0065b74309db7c3b28f14542c0b7e37a0da9c5"]
+    "0x0486ae4189391ac3e03d03585fc4091ffea326e1f22bebac56883c586a1b6e82", 
+    "0x034c0ae8bd353e82c697d227a8b2c7ae405a28dc9f4f3bd7a23f96947b71e400"]
 
   // it("should reject invalid withdrawals", async () => {
 
@@ -43,7 +39,7 @@ contract("RollupNC Withdraw", async accounts => {
   it("should accept valid withdrawals", async () => {
     let rollupnc = await RollupNC.deployed();
     let validWithdraw = await rollupnc.withdraw(
-          pubkey_from, pubkey_to, [nonce, amount, token_type_from], 
+          pubkey_from, [nonce, amount, token_type_from], 
           [position, proof], txRoot, recipient,
           a, b, c
         );

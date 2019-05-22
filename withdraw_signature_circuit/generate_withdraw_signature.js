@@ -12,7 +12,7 @@ var pubKey = eddsa.prv2pub(prvKey);
 var nonce = 0;
 var txRoot = bigInt('149126198147162084281232535967801344773039936115368629187002798446712412021')
 var recipient = bigInt('0xC33Bdb8051D6d2002c0D80A1Dd23A1c9d9FC26E4');
-var m = mimcjs.multiHash([nonce, txRoot, recipient])
+var m = mimcjs.multiHash([nonce, recipient])
 
 var signature = eddsa.signMiMC(prvKey, m);
 
@@ -25,9 +25,7 @@ const inputs = {
     R8x: signature.R8[0].toString(),
     R8y: signature.R8[1].toString(),
     S: signature.S.toString(),
-    nonce: nonce,
-    txRoot: txRoot.toString(),
-    ethRecipientAddress: recipient.toString()
+    M: m.toString()
 }
 
 fs.writeFileSync(

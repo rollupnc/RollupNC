@@ -56,4 +56,12 @@ contract MiMCMerkle{
         }
         return r;
     }
+
+    function hashWithdraw(uint[2] memory array) public returns(uint){
+        uint r = IV;
+        for (uint i = 0; i < array.length; i++){
+            r = mimc.MiMCpe7(r, array[i]);
+        }
+        return r;
+    }
 }

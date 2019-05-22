@@ -19,6 +19,7 @@ contract IMiMCMerkle {
         uint256)
     public view returns(bool) {}
     function hashTx(uint[6] memory array) public returns(uint) {}
+    function hashWithdraw(uint[2] memory array) public returns(uint){}
 
 }
 
@@ -65,7 +66,6 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
 
     function withdraw(
         uint[2] memory pubkey_from,
-        uint[2] memory pubkey_to,
         uint[3] memory txInfo, //[nonce, amount, token_type_from]
         uint[2][2] memory positionAndProof, //[[position], [proof]]
         uint txRoot,
@@ -74,19 +74,19 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
         uint[2][2] memory b,
         uint[2] memory c
     ) public{
-        require(pubkey_to[0] == 0 && pubkey_to[1] == 0,
-            "withdraw must be made to zero address");
         uint txLeaf = mimcMerkle.hashTx([
             pubkey_from[0], pubkey_from[1],
-            pubkey_to[0], pubkey_to[1],
+            0, 0, //withdraw to zero address
             txInfo[1], txInfo[2]
         ]);
         require(mimcMerkle.verifyMerkleProof(
             txLeaf, positionAndProof[0], positionAndProof[1], txRoot),
             "transaction does not exist in specified transactions root");
 
+        // message is hash of nonce and recipient address
+        uint m = mimcMerkle.hashWithdraw([txInfo[0], uint(recipient)]);
         require(WithdrawSigVerifier.verifyProof(
-            a, b, c, [pubkey_from[0], pubkey_from[1], txInfo[0], txRoot, (uint(recipient))]),
+            a, b, c, [pubkey_from[0], pubkey_from[1], m]),
             "eddsa signature is not valid");
 
         emit Withdraw(pubkey_from, recipient, txRoot, txInfo);
