@@ -31,6 +31,8 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
     address coordinator;
     mapping(uint256 => uint256) txRootToOldBalanceRoot;
 
+    event Withdraw(uint[2] pubkey_from, address recipient, uint txRoot, uint[3] txInfo);
+
     constructor(
         address _mimcContractAddr,
         address _mimcMerkleContractAddr
@@ -87,7 +89,7 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
             a, b, c, [pubkey_from[0], pubkey_from[1], txInfo[0], txRoot, (uint(recipient))]),
             "eddsa signature is not valid");
 
-        
+        emit Withdraw(pubkey_from, recipient, txRoot, txInfo);
     }
 
 }
