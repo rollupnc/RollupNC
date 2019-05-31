@@ -1,18 +1,12 @@
-const eddsa = require("../circomlib/src/eddsa.js");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
-const util = require("util");
-const mimcjs = require("../circomlib/src/mimc7.js");
 const account = require("../utils/generate_accounts.js");
 const balanceLeaf = require("../utils/generate_balance_leaf.js");
 const txLeaf = require("../utils/generate_tx_leaf.js");
 const merkle = require("../utils/MiMCMerkle.js")
-const bigInt = snarkjs.bigInt;
 const update = require("../utils/update.js")
 
 const TX_DEPTH = 2;
-const BAL_DEPTH = 2;
-var txLeafArray = new Array(2**TX_DEPTH).fill(0);
 
 // generate zero, Alice, Bob, Charlie accounts with the following parameters
 const num_accts = 3;
@@ -55,6 +49,7 @@ const txArray = txLeaf.generateTxLeafArray(
 )
 
 const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
+
 const txTree = merkle.treeFromLeafArray(txLeafHashes)
 
 // const txRoot = merkle.rootFromLeafArray(txLeafHashes)
@@ -70,6 +65,8 @@ const signatures = txLeaf.signTxLeafHashArray(
     [prvKeys[0], prvKeys[1], prvKeys[0], prvKeys[2]]
 )
 
+console.log(signatures)
+
 const inputs = update.processTxArray(
     TX_DEPTH,
     pubKeys,
@@ -81,6 +78,7 @@ const inputs = update.processTxArray(
     signatures
 )
 
+console.log(inputs)
 
 fs.writeFileSync(
     "./input.json",

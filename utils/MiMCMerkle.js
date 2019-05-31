@@ -1,5 +1,6 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
 const bigInt = require("snarkjs").bigInt;
+const balanceLeaf = require("./generate_balance_leaf.js")
 
 module.exports = {
 
@@ -80,7 +81,9 @@ module.exports = {
         if (array.length % 2 == 0){
             arrayHash = []
             for (i = 0; i < array.length; i = i + 2){
-                arrayHash.push(mimcjs.multiHash([array[i].toString(),array[i+1].toString()]))
+                arrayHash.push(mimcjs.multiHash(
+                    [array[i].toString(),array[i+1].toString()]
+                ))
             }
             return arrayHash
         } else {
