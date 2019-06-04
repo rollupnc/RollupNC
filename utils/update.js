@@ -12,6 +12,7 @@ module.exports = {
 
     processTxArray: function(
         tx_depth,
+        bal_depth,
         pubKeys,
         balanceLeafArrayReceiver,
         from_accounts_idx,
@@ -63,10 +64,13 @@ module.exports = {
 
         const txProofs = merkle.generateMerkleProofArray(txTree, txLeafHashes)
         
+        // console.log('processTxArray balance leaf array', balanceLeafArrayReceiver)
         var balanceLeafHashArrayReceiver = balance.hashBalanceLeafArray(balanceLeafArrayReceiver)
         
         var balanceTreeReceiver = merkle.treeFromLeafArray(balanceLeafHashArrayReceiver)
         const originalState = merkle.rootFromLeafArray(balanceLeafHashArrayReceiver)
+        console.log('originalState', originalState)
+        console.log('originalState', originalState.toString())
 
         intermediateRoots[0] = originalState
 
@@ -80,8 +84,8 @@ module.exports = {
             tokenTypeFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['token_type']
             tokenTypeToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['token_type']
 
-            fromPosArray[k] = merkle.idxToBinaryPos(from_accounts_idx[k], tx_depth)
-            toPosArray[k] = merkle.idxToBinaryPos(to_accounts_idx[k], tx_depth)
+            fromPosArray[k] = merkle.idxToBinaryPos(from_accounts_idx[k], bal_depth)
+            toPosArray[k] = merkle.idxToBinaryPos(to_accounts_idx[k], bal_depth)
 
             fromProofs[k] = merkle.getProof(from_accounts_idx[k], balanceTreeReceiver, balanceLeafHashArrayReceiver)
 
@@ -106,7 +110,7 @@ module.exports = {
         }
 
         console.log('newRoot', intermediateRoots[2**(tx_depth + 1)])
-
+        console.log('currentState', originalState.toString())
         return{
 
             tx_root: txRoot.toString(),
@@ -222,8 +226,8 @@ module.exports = {
 
     getNewLeaves: function(tx, fromLeaf, toLeaf){
 
-        fromLeafCopy = balance.getZeroLeaf()
-        toLeafCopy = balance.getZeroLeaf()
+        fromLeafCopy = balance.zeroLeaf()
+        toLeafCopy = balance.zeroLeaf()
 
         newFromLeaf = Object.assign(fromLeafCopy, fromLeaf)
         newToLeaf = Object.assign(toLeafCopy, toLeaf)

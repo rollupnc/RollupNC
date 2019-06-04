@@ -15,7 +15,7 @@ const TX_DEPTH = 2;
 const BAL_DEPTH = 16;
 const BAL_LEAF_NUM = 2**BAL_DEPTH
 
-const zeroLeaf = balanceLeaf.getZeroLeaf()
+const zeroLeaf = balanceLeaf.zeroLeaf()
 const zeroLeafHash = balanceLeaf.hashBalanceLeafArray([zeroLeaf])[0]
 
 const zeroCache = new Array(BAL_DEPTH)
