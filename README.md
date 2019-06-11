@@ -54,6 +54,9 @@ class Account = {
   token_type: integer
 }
 ```
+```
+account_leaf = hash([pubKey, balance, nonce, token_type])
+```
 The **Accounts Merkle tree** has depth `bal_depth` and `2^bal_depth` accounts as its leaves. The first leaf (index `0`) is reserved as the `zero_leaf`. Transactions made to the `zero_leaf` are considered `withdraw`s. The second leaf (index `1`) is reserved as a known operator leaf. This account can be used to make zero transactions when we need to pad inputs to the circuit.
 
 For convenience, we also cache the empty accounts tree when initialising rollupNC.
@@ -73,6 +76,11 @@ class Transaction = {
 }
 ```
 TODO: implement atomic swaps and fees fields in `Transfer` object
+TODO: add `nonce` into current implementation to prevent replay attacks
+
+```
+tx_leaf = hash([from_pubKey, to_pubKey, amount, nonce, token_type])
+```
 
 For each SNARK, we construct a **Transactions Merkle tree**, whose leaves are the transactions processed by the SNARK. 
 
@@ -80,11 +88,13 @@ For each SNARK, we construct a **Transactions Merkle tree**, whose leaves are th
 The user sends `deposit` and `withdraw` transactions directly to the smart contract, and all other normal transactions to the off-chain coordinator. 
 
 ### Deposits
-1. User deposits into smart contract
+1. User calls `deposit(eddsa_pubkey, amount, tokenType)` on smart contract. The `deposit()` function:
 
-  - increment `deposit_queue_number` (global variable in smart contract)
+  - increments `deposit_queue_number` (global variable in smart contract)
+  
+  - hashes `[eddsa_pubkey, amount, nonce = 0, tokenType]` to get the `Account` leaf
 
-  - push deposit to deposits_array
+  - push deposit to `deposits_array`
   ```
   deposits_array = []
   deposits_array = [A] // Alice deposits, pushed to deposits_array
