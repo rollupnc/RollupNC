@@ -6,7 +6,33 @@ SNARKs can generate succinct proofs for large computations, which are much faste
 
 RollupNC is an implementation of [rollup](https://github.com/barryWhiteHat/roll_up) in which the relayer **does not** publish transaction data to the main chain, but only publishes the new Merkle root at every update. This provides gas savings but not data availability guarantees: we assume the operator will always provide data to users so they can update their leaf.
 
-NB: it is trivial to change this implementation back to the original rollup, since it simply involves switching the `private` circuit inputs to `public`. 
+NB: it is trivial to change this implementation back to the original rollup, since it simply involves switching the `private` circuit inputs to `public`.
+
+<!-- toc -->
+
+- [Building this repo](#building-this-repo)
+- [Spec](#spec)
+  * [Parameters](#parameters)
+  * [Data structures](#data-structures)
+    + [EdDSA](#eddsa)
+    + [Account](#account)
+    + [Transaction](#transaction)
+- [User](#user)
+  * [Deposits](#deposits)
+  * [Transactions](#transactions)
+  * [Withdraw](#withdraw)
+- [Prover](#prover)
+  * [Public inputs and output](#public-inputs-and-output)
+  * [What the circuit is actually doing](#what-the-circuit-is-actually-doing)
+  * [Inputs to SNARK circuit](#inputs-to-snark-circuit)
+    + [Parameters](#parameters-1)
+  * [Private inputs (organised by purpose)](#private-inputs-organised-by-purpose)
+      - [General](#general)
+      - [Transaction information](#transaction-information)
+      - [Transaction checks](#transaction-checks)
+      - [Account existence checks](#account-existence-checks)
+
+<!-- tocstop -->
 
 ## Building this repo
 
