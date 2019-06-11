@@ -2,7 +2,7 @@
 
 ![](https://i.imgur.com/ZXVs8IP.png)
 
-SNARKs can make succinct proofs for large computations, meaning that these proofs are much faster and computationally easier to verify than they are to compute. Thus, we can "compress" expensive operations by computing them off-chain in a SNARK, and then only verifying the proof on-chain.
+SNARKs can generate succinct proofs for large computations, which are much faster and computationally easier to verify than they are to compute. This provides a way to "compress" expensive operations by computing them off-chain in a SNARK, and then only verifying the proof on-chain.
 
 RollupNC is an implementation of [rollup](https://github.com/barryWhiteHat/roll_up) in which the relayer **does not** publish transaction data to the main chain, but only publishes the new Merkle root at every update. This provides gas savings but not data availability guarantees: we assume the operator will always provide data to users so they can update their leaf.
 
