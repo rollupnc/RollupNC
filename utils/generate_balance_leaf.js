@@ -2,7 +2,7 @@ const mimcjs = require("../circomlib/src/mimc7.js");
 
 module.exports = {
 
-    getZeroLeaf: function(){
+    zeroLeaf: function(){
         zeroLeaf = {};
         zeroLeaf['pubKey_x'] = BigInt("0".padStart(76,'0'));
         zeroLeaf['pubKey_y'] = BigInt("0".padStart(77,'0'));
@@ -12,8 +12,14 @@ module.exports = {
         return zeroLeaf;
     },
 
+    zeroLeafHash: function(){
+        const zeroLeaf = module.exports.zeroLeaf()
+        const zeroLeafHash = module.exports.hashBalanceLeafArray([zeroLeaf])[0]
+        return zeroLeafHash
+    },
+
     isZeroLeaf: function(balanceLeaf){
-        zeroLeaf = module.exports.getZeroLeaf()
+        zeroLeaf = module.exports.zeroLeaf()
         if(
             zeroLeaf['pubKey_x'] == balanceLeaf['pubKey_x'] &&
             zeroLeaf['pubKey_y'] == balanceLeaf['pubKey_y'] &&

@@ -1,7 +1,21 @@
 const mimcjs = require("../circomlib/src/mimc7.js");
 const bigInt = require("snarkjs").bigInt;
+const balanceLeaf = require("./generate_balance_leaf.js")
+
+var nonEmptyLeafArray = new Array()
+var nonEmptyTree = new Array()
 
 module.exports = {
+
+    // cache empty tree values 
+    getZeroCache: function(zeroLeafHash, depth){
+        var zeroCache = new Array(depth)
+        zeroCache[0] = zeroLeafHash
+        for (var i = 1; i < depth; i++){
+            zeroCache[i] = mimcjs.multiHash([zeroCache[i-1],zeroCache[i-1]])
+        }
+        return zeroCache
+    },
 
     getProof: function(leafIdx, tree, leaves){
         depth = tree.length;
@@ -14,48 +28,71 @@ module.exports = {
         return proof;
     },
 
+    getProofEmpty: function(height, zeroCache){
+        const depth = zeroCache.length
+        if (height < depth){
+            return zeroCache.slice(height, depth + 1)
+        } else {
+            return []
+        }
+    },
+
     verifyProof: function(leaf, idx, proof, root){
         computed_root = module.exports.rootFromLeafAndPath(leaf, idx, proof)
         return (root == computed_root)
     },
 
     rootFromLeafAndPath: function(leaf, idx, merkle_path){
-        depth = merkle_path.length
-        merkle_path_pos = module.exports.idxToBinaryPos(idx, depth)
-        var root = new Array(depth);
-        left = bigInt(leaf) - bigInt(merkle_path_pos[0])*(bigInt(leaf) - bigInt(merkle_path[0]));
-        right = bigInt(merkle_path[0]) - bigInt(merkle_path_pos[0])*(bigInt(merkle_path[0]) - bigInt(leaf));
-        root[0] = mimcjs.multiHash([left, right]);
-        var i;
-        for (i = 1; i < depth; i++) {
-            left = root[i-1] - bigInt(merkle_path_pos[i])*(root[i-1] - bigInt(merkle_path[i]));
-            right = bigInt(merkle_path[i]) - bigInt(merkle_path_pos[i])*(bigInt(merkle_path[i]) - root[i-1]);              
-            root[i] = mimcjs.multiHash([left, right]);
+        if (merkle_path.length > 0){
+            const depth = merkle_path.length
+            const merkle_path_pos = module.exports.idxToBinaryPos(idx, depth)
+            var root = new Array(depth);
+            left = bigInt(leaf) - bigInt(merkle_path_pos[0])*(bigInt(leaf) - bigInt(merkle_path[0]));
+            right = bigInt(merkle_path[0]) - bigInt(merkle_path_pos[0])*(bigInt(merkle_path[0]) - bigInt(leaf));
+            root[0] = mimcjs.multiHash([left, right]);
+            var i;
+            for (i = 1; i < depth; i++) {
+                left = root[i-1] - bigInt(merkle_path_pos[i])*(root[i-1] - bigInt(merkle_path[i]));
+                right = bigInt(merkle_path[i]) - bigInt(merkle_path_pos[i])*(bigInt(merkle_path[i]) - root[i-1]);              
+                root[i] = mimcjs.multiHash([left, right]);
+            }
+    
+            return root[depth - 1];
+        } else {
+            return leaf
         }
 
-        return root[depth - 1];
+    },
+
+    // fill a leaf array with zero leaves until it is a power of 2
+    padLeafArray: function(leafArray, zeroLeaf, fillerLength){
+        if (Array.isArray(leafArray)){
+            var arrayClone = leafArray.slice(0)
+            const nearestPowerOfTwo = Math.ceil(module.exports.getBase2Log(leafArray.length))
+            const diff = fillerLength || 2**nearestPowerOfTwo - leafArray.length
+            for (var i = 0; i < diff; i++){
+                arrayClone.push(zeroLeaf)
+            }
+            return arrayClone
+        } else {
+            console.log("please enter pubKeys as an array")
+        }
     },
 
 
-    proofIdx: function(leafIdx, treeDepth){
-        proofIdxArray = new Array(treeDepth);
-        proofPos = module.exports.idxToBinaryPos(leafIdx, treeDepth);
-
-        if (leafIdx % 2 == 0){
-            proofIdxArray[0] = leafIdx + 1;
-        } else {
-            proofIdxArray[0] = leafIdx - 1;
-        }
-
-        for (i = 1; i < treeDepth; i++){
-            if (proofPos[i] == 1){
-                proofIdxArray[i] = Math.floor(proofIdxArray[i - 1] / 2) - 1;
-            } else {
-                proofIdxArray[i] = Math.floor(proofIdxArray[i - 1] / 2) + 1;
+    // fill a leaf hash array with zero leaf hashes until it is a power of 2
+    padLeafHashArray: function(leafHashArray, zeroLeafHash, fillerLength){
+        if (Array.isArray(leafHashArray)){
+            var arrayClone = leafHashArray.slice(0)
+            const nearestPowerOfTwo = Math.ceil(module.exports.getBase2Log(leafHashArray.length))
+            const diff = fillerLength || 2**nearestPowerOfTwo - leafHashArray.length
+            for (var i = 0; i < diff; i++){
+                arrayClone.push(zeroLeafHash)
             }
+            return arrayClone
+        } else {
+            console.log("please enter pubKeys as an array")
         }
-
-        return(proofIdxArray)
     },
 
     treeFromLeafArray: function(leafArray){
@@ -80,16 +117,14 @@ module.exports = {
         if (array.length % 2 == 0){
             arrayHash = []
             for (i = 0; i < array.length; i = i + 2){
-                arrayHash.push(mimcjs.multiHash([array[i].toString(),array[i+1].toString()]))
+                arrayHash.push(mimcjs.multiHash(
+                    [array[i].toString(),array[i+1].toString()]
+                ))
             }
             return arrayHash
         } else {
             console.log('array must have even number of elements')
         }
-    },
-
-    getBase2Log: function(y){
-        return Math.log(y) / Math.log(2);
     },
 
     generateMerklePosArray: function(depth){
@@ -109,6 +144,14 @@ module.exports = {
         return txProofs;
     },
 
+    ///////////////////////////////////////////////////////////////////////
+    // HELPER FUNCTIONS
+    ///////////////////////////////////////////////////////////////////////
+
+    getBase2Log: function(y){
+        return Math.log(y) / Math.log(2);
+    },
+
     binaryPosToIdx: function(binaryPos){
         var idx = 0;
         for (i = 0; i < binaryPos.length; i++){
@@ -125,6 +168,28 @@ module.exports = {
             binPos[j] = Number(binString.charAt(binString.length - j - 1));
         }
         return binPos;
+    },
+
+    proofIdx: function(leafIdx, treeDepth){
+        proofIdxArray = new Array(treeDepth);
+        proofPos = module.exports.idxToBinaryPos(leafIdx, treeDepth);
+        // console.log('proofPos', proofPos)
+
+        if (leafIdx % 2 == 0){
+            proofIdxArray[0] = leafIdx + 1;
+        } else {
+            proofIdxArray[0] = leafIdx - 1;
+        }
+
+        for (i = 1; i < treeDepth; i++){
+            if (proofPos[i] == 1){
+                proofIdxArray[i] = Math.floor(proofIdxArray[i - 1] / 2) - 1;
+            } else {
+                proofIdxArray[i] = Math.floor(proofIdxArray[i - 1] / 2) + 1;
+            }
+        }
+
+        return(proofIdxArray)
     }
 
 }

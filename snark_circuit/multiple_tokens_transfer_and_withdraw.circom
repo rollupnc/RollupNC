@@ -76,6 +76,9 @@ template Main(n,m) {
     component newReceiver[2**m - 1];
     component merkle_root_from_new_receiver[2**m - 1];
 
+
+    current_state === intermediate_roots[0];
+
     for (var i = 0; i < 2**m - 1; i++) {
 
         // transactions existence and signature check
@@ -286,4 +289,4 @@ template Main(n,m) {
 
 }
 
-component main = Main(2,2);
+component main = Main(4,2);
