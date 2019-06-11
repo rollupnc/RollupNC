@@ -24,15 +24,15 @@ $ npm install -g truffle ganache-cli
 eddsa_prvKey: string //"biginteger"
 ```
 
-```
-eddsa_pubKey{
+```js
+class eddsa_pubKey = {
   X: string // "biginteger",
   Y: string // "biginteger"
 }
 ```
 
-```
-eddsa_signature = {
+```js
+class eddsa_signature = {
   R8: string[2] // "biginteger",
   S: string // "biginteger"
 }
@@ -46,7 +46,7 @@ class Account = {
   token_type: integer
 }
 ```
-The **Accounts Merkle tree** has depth `bal_depth` and `2^bal_depth` accounts as its leaves. The first leaf (index `0`) is reserved as the `zero_leaf`. Transfers made to the `zero_leaf` are considered `withdraw`s. The second leaf (index `1`) is reserved as a known operator leaf. This account can be used to make zero transactions when we need to pad inputs to the circuit.
+The **Accounts Merkle tree** has depth `bal_depth` and `2^bal_depth` accounts as its leaves. The first leaf (index `0`) is reserved as the `zero_leaf`. Transactions made to the `zero_leaf` are considered `withdraw`s. The second leaf (index `1`) is reserved as a known operator leaf. This account can be used to make zero transactions when we need to pad inputs to the circuit.
 
 For convenience, we also cache the empty accounts tree when initialising rollupNC.
 ```
@@ -66,7 +66,7 @@ class Transfer = {
 ```
 TODO: implement atomic swaps and fees fields in `Transfer` object
 
-For each SNARK, we construct a **Transfers Merkle tree**, whose leaves are the transfers processed by the SNARK. 
+For each SNARK, we construct a **Transactions Merkle tree**, whose leaves are the transactions processed by the SNARK. 
 
 ## User
 ### Deposits
@@ -99,18 +99,18 @@ For each SNARK, we construct a **Transfers Merkle tree**, whose leaves are the t
 
   - **update balance root on-chain**: using same `deposit_proof`, update the balance root replacing the empty node with the first element of `deposits_array` 
 
-### Transfers
+### Transactions
 
-1. User constructs `Transfer` object
+1. User constructs `Transaction` object
 
-2. User hashes `Transfer` object
+2. User hashes `Transaction` object
 Use `multiHash` in https://github.com/iden3/circomlib/blob/master/src/mimc7.js#L47.
 
 ```js
 txHash = multiHash([from, to, amount, nonce, token_type]) //"biginteger"
 ```
 
-3. User signs hash of `Transfer` object
+3. User signs hash of `Transaction` object
 Use `signMiMC` in https://github.com/iden3/circomlib/blob/master/src/eddsa.js#L53.
 
 ```js
@@ -130,6 +130,48 @@ Merkle proof of a transaction in a tx tree, made from user's EdDSA account to th
 ## Prover
 
 ### Inputs to SNARK circuit
-#### Public inputs
+#### Parameters
+- `n`: depth of Accounts tree (`bal_depth`)
+- `m`: depth of Transactions tree (`tx_depth`)
+
+#### Public inputs and output
 - `tx_root`: Merkle root of a tree of transactions sent to the coordinator
-- `current_state`: Merkle root of old balance tree 
+- `current_state`: Merkle root of old Accounts tree 
+- `out`: Merkle root of updated Accounts tree
+
+#### Private inputs (organised by purpose)
+##### General
+- `intermediate_roots[2**(m+1)]`: the roots of the Accounts tree after processing each transaction. There are `2*2^m` intermediate roots because each transaction results in two updates (once to update the sender account, and then to update the receiver account)
+
+##### Transaction information
+- sender and receiver addresses
+  - `from_x[2**m]`: the sender address x coordinate for each transaction
+  - `from_y[2**m]`: the sender address y coordinate for each transaction
+  - `to_x[2**m]`: the receiver address x coordinate for each transaction
+  - `to_y[2**m]`: the receiver address y coordinate for each transaction
+
+- signature from sender
+  - `R8x[2**m]`: the x component of the R8 value of the sender's signature, for each transaction
+  - `R8y[2**m]`: the y component of the R8 value of the sender's signature, for each transaction
+  - `S[2**m]`: the S value of the sender's signature, for each transaction
+
+- sender and receiver state
+  - `nonce_from[2**m]`: the nonce of the sender account, for each transaction
+  - `nonce_to[2**m]`: the nonce of the receiver account, for each transaction
+  - `token_balance_from[2**m]`: the balance of the sender account, for each transaction
+  - `token_balance_to[2**m]`: the balance of the receiver account, for each transaction
+
+- amount and token type being transacted
+  - `amount[2**m]`: amount being transferred, for each transaction 
+  - `token_type_from[2**m]`: the sender account token type, for each transaction
+  - `token_type_to[2**m]`: the receiver account token type, for each transaction
+
+##### Transaction checks
+- `paths2tx_root[2**m, m]`: Merkle proofs of inclusion (`m` long, since the Transactions tree has depth `m`) for the transactions (`2^m` of them)`
+- `paths2tx_root_pos[2**m, m]`: a binary vector for each transfer indicating whether each node in its transfer proof is the left or right child
+
+##### Account existence checks
+- `paths2root_from[2**m, n]`: Merkle proofs of inclusion (`n` long, since the Accounts tree has depth `n`) for the sender accounts (`2^m` of them)
+- `paths2root_from_pos[2**m, n]`: a binary vector for each sender account indicating whether each node in its transfer proof is the left or right child
+- `paths2root_to[2**m, n]`: Merkle proofs of inclusion (`n` long, since the Accounts tree has depth `n`) for the receiver accounts (`2^m` of them)
+- `paths2root_to_pos[2**m, n]`: a binary vector for each receiver account indicating whether each node in its transfer proof is the left or right child
