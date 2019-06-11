@@ -79,9 +79,10 @@ to_x = account.getPubKeysX(to_accounts)
 to_y = account.getPubKeysY(to_accounts)
 const amounts = [500, 200, 10, 0]
 const tx_token_types = [2, 2, 1, 0]
+const tx_nonces = [0, 0, 0, 0]
 
 const txArray = txLeaf.generateTxLeafArray(
-    from_x, from_y, to_x, to_y, amounts, tx_token_types
+    from_x, from_y, to_x, to_y, tx_nonces, amounts, tx_token_types
 )
 
 const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
@@ -120,6 +121,7 @@ const inputs = update.processTxArray(
     paddedTo16BalanceLeafArray,
     from_accounts_idx,
     to_accounts_idx,
+    tx_nonces,
     amounts,
     tx_token_types,
     signatures

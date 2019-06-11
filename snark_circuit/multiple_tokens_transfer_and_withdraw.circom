@@ -87,6 +87,7 @@ template Main(n,m) {
         txExistence[i].from_y <== from_y[i];
         txExistence[i].to_x <== to_x[i];
         txExistence[i].to_y <== to_y[i];
+        txExistence[i].nonce <== nonce_from[i];
         txExistence[i].amount <== amount[i];
         txExistence[i].token_type_from <== token_type_from[i];
 
@@ -192,6 +193,7 @@ template Main(n,m) {
     finalTxExistence.from_y <== from_y[2**m - 1];
     finalTxExistence.to_x <== to_x[2**m - 1];
     finalTxExistence.to_y <== to_y[2**m - 1];
+    finalTxExistence.nonce <== nonce_from[2**m - 1];
     finalTxExistence.amount <== amount[2**m - 1];
     finalTxExistence.token_type_from <== token_type_from[2**m - 1];
 

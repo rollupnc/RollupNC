@@ -17,6 +17,7 @@ module.exports = {
         balanceLeafArrayReceiver,
         from_accounts_idx,
         to_accounts_idx,
+        tx_nonces,
         amounts,
         tx_token_types,
         signatures,
@@ -55,7 +56,7 @@ module.exports = {
         tokenTypeToArray = new Array(2**tx_depth)
 
         const txArray = txLeaf.generateTxLeafArray(
-            from_x, from_y, to_x, to_y, amounts, tx_token_types
+            from_x, from_y, to_x, to_y, tx_nonces, amounts, tx_token_types
         )
 
         const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
@@ -91,7 +92,8 @@ module.exports = {
 
             output = module.exports.processTx(
                 k, txArray, txProofs[k], signatures[k], txRoot,
-                from_accounts_idx[k], to_accounts_idx[k], balanceLeafArrayReceiver,
+                from_accounts_idx[k], to_accounts_idx[k], tx_nonces[k], 
+                balanceLeafArrayReceiver,
                 fromProofs[k], intermediateRoots[2*k]
             )
 
@@ -148,7 +150,7 @@ module.exports = {
 
     processTx: function(
         txIdx, txLeafArray, txProof, signature, txRoot,
-        fromLeafIdx, toLeafIdx, balanceLeafArray,
+        fromLeafIdx, toLeafIdx, tx_nonce, balanceLeafArray,
         fromProof, oldBalanceRoot
     ){
 
@@ -177,7 +179,7 @@ module.exports = {
             module.exports.checkSignature(txLeaf, fromLeaf, signature)
 
             // nonce check
-            module.exports.checkNonce(fromLeaf)
+            module.exports.checkNonce(fromLeaf, tx_nonce)
 
             // check sender existence in original root
             assert(merkle.verifyProof(fromLeafHash, fromLeafIdx, fromProof, oldBalanceRoot))
@@ -261,8 +263,9 @@ module.exports = {
         }
     },
 
-    checkNonce: function(fromLeaf){
+    checkNonce: function(fromLeaf, tx_nonce){
         assert (fromLeaf['nonce'] < NONCE_MAX_VALUE)
+        assert (fromLeaf['nonce'] == tx_nonce)
     },
 
     stringifyArray: function(array){
