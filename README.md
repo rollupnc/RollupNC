@@ -8,7 +8,7 @@ RollupNC is an implementation of [rollup](https://github.com/barryWhiteHat/roll_
 
 NB: it is trivial to change this implementation back to the original rollup, since it simply involves switching the `private` circuit inputs to `public`. 
 
-## Pre-requirements
+## Building this repo
 
 1. Install node version 10.16.0, possibly using [nvm](https://github.com/nvm-sh/nvm)
 2. Install truffle and ganache-cli
@@ -17,6 +17,8 @@ $ npm install -g truffle ganache-cli
 3. Install submodules: use `git submodule update --init --recursive` to clone `circomlib` submodule
 4. Install npm modules in both root directory and circomlib submodule
 5. [Check out this circom intro](https://github.com/iden3/circom/blob/master/TUTORIAL.md)
+
+## Spec
 
 ### Parameters
 - `bal_depth`: depth of balance Merkle tree
@@ -75,6 +77,8 @@ TODO: implement atomic swaps and fees fields in `Transfer` object
 For each SNARK, we construct a **Transactions Merkle tree**, whose leaves are the transactions processed by the SNARK. 
 
 ## User
+The user sends `deposit` and `withdraw` transactions directly to the smart contract, and all other normal transactions to the off-chain coordinator. 
+
 ### Deposits
 1. User deposits into smart contract
 
@@ -134,6 +138,7 @@ Merkle proof of a transaction in a tx tree, made from user's EdDSA account to th
 
 
 ## Prover
+The prover collects transactions from users and puts them through a SNARK circuit, which outputs a SNARK proof. She then submits the SNARK proof to the smart contract to update the Accounts tree root on-chain.
 
 ### Public inputs and output
 - `tx_root`: Merkle root of a tree of transactions sent to the coordinator
