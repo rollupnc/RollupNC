@@ -92,9 +92,9 @@ The user sends `deposit` and `withdraw` transactions directly to the smart contr
 
   - increments `deposit_queue_number` (global variable in smart contract)
   
-  - hashes `[eddsa_pubkey, amount, nonce = 0, tokenType]` to get the `Account` leaf
+  - hashes `[eddsa_pubkey, amount, nonce = 0, tokenType]` to get the `deposit_leaf` (an `account_leaf`)
 
-  - push deposit to `deposits_array`
+  - push `deposit_leaf` to `deposits_array`
   ```
   deposits_array = []
   deposits_array = [A] // Alice deposits, pushed to deposits_array
