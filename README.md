@@ -1,6 +1,12 @@
 # RollupNC (Rollup non-custodial)
 
-An implementation of [rollup](https://github.com/barryWhiteHat/roll_up) in which the relayer **does not** publish transaction data to the main chain, but only publishes the new Merkle root at every update. This provides gas savings but not data availability guarantees: we assume the operator will always provide data to users so they can update their leaf.
+![](https://i.imgur.com/ZXVs8IP.png)
+
+SNARKs can make succinct proofs for large computations, meaning that these proofs are much faster and computationally easier to verify than they are to compute. Thus, we can "compress" expensive operations by computing them off-chain in a SNARK, and then only verifying the proof on-chain.
+
+RollupNC is an implementation of [rollup](https://github.com/barryWhiteHat/roll_up) in which the relayer **does not** publish transaction data to the main chain, but only publishes the new Merkle root at every update. This provides gas savings but not data availability guarantees: we assume the operator will always provide data to users so they can update their leaf.
+
+NB: it is trivial to change this implementation back to the original rollup, since it simply involves switching the `private` circuit inputs to `public`. 
 
 ## Pre-requirements
 
@@ -129,17 +135,38 @@ Merkle proof of a transaction in a tx tree, made from user's EdDSA account to th
 
 ## Prover
 
+### Public inputs and output
+- `tx_root`: Merkle root of a tree of transactions sent to the coordinator
+- `current_state`: Merkle root of old Accounts tree 
+- `out`: Merkle root of updated Accounts tree
+
+### What the circuit is actually doing
+The circuit is a giant `for` loop that performs a few validity checks on each transaction and updates the Accounts tree if the transaction is valid. It takes in the original root of the Accounts tree and a list of transactions, and outputs a legally updated root of the Accounts tree.
+
+Let's go through the first iteration of the `for` loop:
+- transaction check
+  - **transactions existence check**: check that transaction exists in the `tx_root`
+  - **transactions signature check**: check that transaction is signed by sender
+- sender check
+  - **sender account existence check**: check that sender account exists in `current_state`
+  - **balance underflow check**: check that sender has sufficient balance to send transaction
+- sender update
+  - **sender state update**: decrement sender `balance` and increase sender `nonce`
+  - **intermediate root update #1**: update `current_state` with new sender leaf to get `intermediate_root_1`
+- receiver check
+  - **receiver account existence check**: check that receiver account exists in `intermediate_root_1`
+- receiver update
+  - **receiver state update**: increment receiver `balance`
+  - **intermediate root update #2**: update `intermediate_root_1` with new receiver leaf to get `intermediate_root_2`
+
+Note: there is a special transaction where the receiver is the `zero_leaf`. We consider these to be `withdraw` transactions and do not change the balance and nonce of the `zero_leaf`.
+
 ### Inputs to SNARK circuit
 #### Parameters
 - `n`: depth of Accounts tree (`bal_depth`)
 - `m`: depth of Transactions tree (`tx_depth`)
 
-#### Public inputs and output
-- `tx_root`: Merkle root of a tree of transactions sent to the coordinator
-- `current_state`: Merkle root of old Accounts tree 
-- `out`: Merkle root of updated Accounts tree
-
-#### Private inputs (organised by purpose)
+### Private inputs (organised by purpose)
 ##### General
 - `intermediate_roots[2**(m+1)]`: the roots of the Accounts tree after processing each transaction. There are `2*2^m` intermediate roots because each transaction results in two updates (once to update the sender account, and then to update the receiver account)
 
@@ -175,3 +202,4 @@ Merkle proof of a transaction in a tx tree, made from user's EdDSA account to th
 - `paths2root_from_pos[2**m, n]`: a binary vector for each sender account indicating whether each node in its transfer proof is the left or right child
 - `paths2root_to[2**m, n]`: Merkle proofs of inclusion (`n` long, since the Accounts tree has depth `n`) for the receiver accounts (`2^m` of them)
 - `paths2root_to_pos[2**m, n]`: a binary vector for each receiver account indicating whether each node in its transfer proof is the left or right child
+
