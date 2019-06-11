@@ -15,7 +15,7 @@ NB: it is trivial to change this implementation back to the original rollup, sin
 bash
 $ npm install -g truffle ganache-cli
 3. Install submodules: use `git submodule update --init --recursive` to clone `circomlib` submodule
-4. Install npm modules in both root directory and circomlib submodule
+4. Install npm modules (`npm i`) in both root directory and `circomlib` submodule
 5. [Check out this circom intro](https://github.com/iden3/circom/blob/master/TUTORIAL.md)
 
 ## Spec
