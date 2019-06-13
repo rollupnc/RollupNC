@@ -68,7 +68,6 @@ template Main(n,m) {
                          
     var ZERO_ADDRESS_X = 0000000000000000000000000000000000000000000000000000000000000000000000000000;
     var ZERO_ADDRESS_Y = 00000000000000000000000000000000000000000000000000000000000000000000000000000;
-
     
     component txExistence[2**m - 1];
     component senderExistence[2**m - 1];
@@ -80,6 +79,8 @@ template Main(n,m) {
     component merkle_root_from_new_receiver[2**m - 1];
 
     component ifBothHighForceEqual[2**m -1];
+    component allLow[2**m -1];
+    component ifThenElse[2**m -1];
 
     for (var i = 0; i < 2**m - 1; i++) {
 
@@ -126,8 +127,8 @@ template Main(n,m) {
 
         // check token types for non-withdraw transfers
 	ifBothHighForceEqual[2*i] = IfBothHighForceEqual();
-	ifBothHighForceEqual[2*i].to_x <== to_x[i];
-	ifBothHighForceEqual[2*i].to_y <== to_y[i];
+	ifBothHighForceEqual[2*i].check1 <== to_x[i];
+	ifBothHighForceEqual[2*i].check2 <== to_y[i];
 	ifBothHighForceEqual[2*i].a <== token_type_to[i];
 	ifBothHighForceEqual[2*i].b <== token_type_from[i];	
 
@@ -164,19 +165,22 @@ template Main(n,m) {
             receiverExistence[i].paths2_root[j] <== paths2root_to[i, j];
         }
 
-        // add amount to receiver balance
-        // if receiver is zero address, do not change balance
         newReceiver[i] = BalanceLeaf();
         newReceiver[i].x <== to_x[i];
         newReceiver[i].y <== to_y[i];
-	// TODO fix if connecting signals
-        if (to_x[i] == ZERO_ADDRESS_X && to_y[i] == ZERO_ADDRESS_Y){
-            newReceiver[i].token_balance <== token_balance_to[i];
-        }
-	// TODO fix if connecting signals
-        if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
-            newReceiver[i].token_balance <== token_balance_to[i] + amount[i];
-        }
+
+        // if receiver is zero address, do not change balance
+        // otherwise add amount to receiver balance
+	allLow[i] = AllLow(2);
+	allLow[i].in[0] <== to_x[i];
+	allLow[i].in[1] <== to_y[i];
+
+	ifThenElse[i] = IfAThenBElseC();
+	ifThenElse[i].aCond <== allLow[i].out;
+	ifThenElse[i].bBranch <== token_balance_to[i];
+	ifThenElse[i].cBranch <== token_balance_to[i] + amount[i];
+	
+	newReceiver[i].token_balance <== ifThenElse[i].out;
         newReceiver[i].nonce <== nonce_to[i];
         newReceiver[i].token_type <== token_type_to[i];
 
@@ -238,8 +242,8 @@ template Main(n,m) {
 
     // check token types for non-withdraw transfers
     component finalIfBothHighForceEqual = IfBothHighForceEqual();
-    finalIfBothHighForceEqual.to_x <== to_x[2**m -1];
-    finalIfBothHighForceEqual.to_y <== to_y[2**m -1];
+    finalIfBothHighForceEqual.check1 <== to_x[2**m -1];
+    finalIfBothHighForceEqual.check2 <== to_y[2**m -1];
     finalIfBothHighForceEqual.a <== token_type_to[2**m - 1];
     finalIfBothHighForceEqual.b <== token_type_from[2**m - 1];	    
 
@@ -279,14 +283,19 @@ template Main(n,m) {
     component new_final_receiver = BalanceLeaf();
     new_final_receiver.x <== to_x[2**m - 1];
     new_final_receiver.y <== to_y[2**m - 1];
-    // TODO fix if connecting signals
-    if (to_x[2**m - 1] == ZERO_ADDRESS_X && to_y[2**m - 1] == ZERO_ADDRESS_Y){
-        new_final_receiver.token_balance <== token_balance_to[2**m - 1];
-    }
-    // TODO fix if connecting signals
-    if (to_x[2**m - 1] != ZERO_ADDRESS_X && to_y[2**m - 1] != ZERO_ADDRESS_Y){
-        new_final_receiver.token_balance <== token_balance_to[2**m - 1] + amount[2**m - 1];
-    }
+
+    // if receiver is zero address, do not change balance
+    // otherwise add amount
+    component finalAllLow = AllLow(2);
+    finalAllLow.in[0] <== to_x[2**m - 1];
+    finalAllLow.in[1] <== to_y[2**m - 1];
+    
+    component finalIfThenElse = IfAThenBElseC();
+    finalIfThenElse.aCond <== finalAllLow.out;
+    finalIfThenElse.bBranch <== token_balance_to[2**m - 1];
+    finalIfThenElse.cBranch <== token_balance_to[2**m - 1] + amount[2**m - 1];
+    newReceiver[i].token_balance <== finalIfThenElse[i].out;
+
     new_final_receiver.nonce <== nonce_to[2**m - 1];
     new_final_receiver.token_type <== token_type_to[2**m - 1];
 
