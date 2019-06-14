@@ -131,7 +131,32 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
             depositQueueNumber++;
             emit RequestDeposit(amount, tokenType, pubkey);
         }
+
     }
+
+/*
+
+// TODO: include Stuart's deposit fn
+    bytes32[] public currentDeposits;
+    uint[] public pendingDeposits;
+    uint public cdLength = 0;
+
+     function deposit(uint pk1) public {
+        pendingDeposits.push(pk1);
+        if(pendingDeposits.length % 2 == 0){
+            bytes32 cd = keccak256(abi.encodePacked(pendingDeposits[0], pendingDeposits[1]));
+            delete pendingDeposits;
+            currentDeposits.push(cd);
+            cdLength ++;
+            uint tempLength = cdLength;
+            while(tempLength % 2 == 0 && cdLength != 0){
+                currentDeposits[currentDeposits.length - 2] = keccak256(abi.encodePacked(currentDeposits[currentDeposits.length - 1], currentDeposits[currentDeposits.length -2]));
+                currentDeposits.length --;
+                tempLength = tempLength / 2;
+            }
+        }
+    }
+*/
 
     // coordinator adds certain number of deposits to balance tree
     // coordinator must specify subtree index in the tree since the deposits

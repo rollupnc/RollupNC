@@ -4,24 +4,6 @@ const eddsa = require("../circomlib/src/eddsa.js");
 
 module.exports = {
 
-    emptyTxLeaf: function(){
-        leaf = {}
-        leaf['from_x'] = account.coordinatorPubKey[0];
-        leaf['from_y'] = account.coordinatorPubKey[1];
-        leaf['to_x'] = 0;
-        leaf['to_y'] = 0;
-        leaf['nonce'] = 0;
-        leaf['amount'] = 0;
-        leaf['token_type'] = 0;
-        return leaf;
-    },
-
-    emptyTxLeafHash: function(){
-        emptyTxLeaf = module.exports.emptyTxLeaf()
-        emptyTxLeafHash = module.exports.hashTxLeafArray([emptyTxLeaf])[0]
-        return emptyTxLeafHash
-    },
-
     generateTxLeafArray: function(
         from_x, from_y, to_x, to_y, nonces, amounts, token_types
     ){

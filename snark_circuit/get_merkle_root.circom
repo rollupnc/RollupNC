@@ -23,7 +23,7 @@ template GetMerkleRoot(k){
         merkle_root[v].in[1] <== paths2_root[v] - paths2_root_pos[v]* (paths2_root[v] - merkle_root[v-1].out);
     }
 
-    // equality constraint: input tx root === computed tx root 
+    // output computed Merkle root
     out <== merkle_root[k-1].out;
 
 }
