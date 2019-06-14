@@ -1,7 +1,7 @@
-include "/home/austin/Repositories/Github/iden3/circomlib/circuits/comparators.circom"
-include "/home/austin/Repositories/Github/iden3/circomlib/circuits/switcher.circom"
-include "/home/austin/Repositories/Github/iden3/circomlib/circuits/gates.circom"
-include "../if-gadgets.circom"
+include "../circomlib/circuits/comparators.circom"
+include "../circomlib/circuits/switcher.circom"
+include "../circomlib/circuits/gates.circom"
+include "./if-gadgets.circom"
 
 
 template CheckLeaves() {
