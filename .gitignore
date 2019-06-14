@@ -3,3 +3,4 @@ node_modules/
 proving_key.json
 verification_key.json
 build
+circuit.json

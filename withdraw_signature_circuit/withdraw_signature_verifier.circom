@@ -1,4 +1,5 @@
 include "../circomlib/circuits/eddsamimc.circom";
+include "../circomlib/circuits/mimc.circom";
 
 template Main(){
 
@@ -7,7 +8,7 @@ template Main(){
     signal private input R8x;
     signal private input R8y;
     signal private input S;
-    signal input ethRecipientAddress;
+    signal input M;
 
     component verifier = EdDSAMiMCVerifier();   
     verifier.enabled <== 1;
@@ -16,7 +17,7 @@ template Main(){
     verifier.R8x <== R8x;
     verifier.R8y <== R8y;
     verifier.S <== S;
-    verifier.M <== ethRecipientAddress;
+    verifier.M <== M;
 
 }
 

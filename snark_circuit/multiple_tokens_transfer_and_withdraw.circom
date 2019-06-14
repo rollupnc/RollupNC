@@ -1,10 +1,12 @@
 include "../circomlib/circuits/mimc.circom";
 include "../circomlib/circuits/eddsamimc.circom";
 include "../circomlib/circuits/bitify.circom";
+include "../circomlib/circuits/comparators.circom";
 include "./tx_existence_check.circom";
 include "./balance_existence_check.circom";
 include "./balance_leaf.circom";
 include "./get_merkle_root.circom";
+include "./if-gadgets.circom";
 
 template Main(n,m) {
 // n is depth of balance tree
@@ -66,15 +68,20 @@ template Main(n,m) {
                          
     var ZERO_ADDRESS_X = 0000000000000000000000000000000000000000000000000000000000000000000000000000;
     var ZERO_ADDRESS_Y = 00000000000000000000000000000000000000000000000000000000000000000000000000000;
-
     
     component txExistence[2**m - 1];
     component senderExistence[2**m - 1];
+    
     component newSender[2**m - 1];
     component merkle_root_from_new_sender[2**m - 1];
     component receiverExistence[2**m - 1];
     component newReceiver[2**m - 1];
     component merkle_root_from_new_receiver[2**m - 1];
+
+    component ifBothHighForceEqual[2**m -1];
+    component allLow[2**m -1];
+    component ifThenElse[2**m -1];
+
 
     for (var i = 0; i < 2**m - 1; i++) {
 
@@ -84,6 +91,7 @@ template Main(n,m) {
         txExistence[i].from_y <== from_y[i];
         txExistence[i].to_x <== to_x[i];
         txExistence[i].to_y <== to_y[i];
+        txExistence[i].nonce <== nonce_from[i];
         txExistence[i].amount <== amount[i];
         txExistence[i].token_type_from <== token_type_from[i];
 
@@ -113,15 +121,18 @@ template Main(n,m) {
         }
     
         // balance checks
+	// TODO fix cmp
         token_balance_from[i] - amount[i] <= token_balance_from[i];
         token_balance_to[i] + amount[i] >= token_balance_to[i];
 
         nonce_from[i] != NONCE_MAX_VALUE;
 
         // check token types for non-withdraw transfers
-        if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
-            token_type_to[i] === token_type_from[i];
-        }
+	ifBothHighForceEqual[2*i] = IfBothHighForceEqual();
+	ifBothHighForceEqual[2*i].check1 <== to_x[i];
+	ifBothHighForceEqual[2*i].check2 <== to_y[i];
+	ifBothHighForceEqual[2*i].a <== token_type_to[i];
+	ifBothHighForceEqual[2*i].b <== token_type_from[i];	
 
         // subtract amount from sender balance; increase sender nonce 
         newSender[i] = BalanceLeaf();
@@ -156,17 +167,22 @@ template Main(n,m) {
             receiverExistence[i].paths2_root[j] <== paths2root_to[i, j];
         }
 
-        // add amount to receiver balance
-        // if receiver is zero address, do not change balance
         newReceiver[i] = BalanceLeaf();
         newReceiver[i].x <== to_x[i];
         newReceiver[i].y <== to_y[i];
-        if (to_x[i] == ZERO_ADDRESS_X && to_y[i] == ZERO_ADDRESS_Y){
-            newReceiver[i].token_balance <== token_balance_to[i];
-        }
-        if (to_x[i] != ZERO_ADDRESS_X && to_y[i] != ZERO_ADDRESS_Y){
-            newReceiver[i].token_balance <== token_balance_to[i] + amount[i];
-        }
+
+        // if receiver is zero address, do not change balance
+        // otherwise add amount to receiver balance
+	allLow[i] = AllLow(2);
+	allLow[i].in[0] <== to_x[i];
+	allLow[i].in[1] <== to_y[i];
+
+	ifThenElse[i] = IfAThenBElseC();
+	ifThenElse[i].aCond <== allLow[i].out;
+	ifThenElse[i].bBranch <== token_balance_to[i];
+	ifThenElse[i].cBranch <== token_balance_to[i] + amount[i];
+	
+	newReceiver[i].token_balance <== ifThenElse[i].out;
         newReceiver[i].nonce <== nonce_to[i];
         newReceiver[i].token_type <== token_type_to[i];
 
@@ -189,6 +205,7 @@ template Main(n,m) {
     finalTxExistence.from_y <== from_y[2**m - 1];
     finalTxExistence.to_x <== to_x[2**m - 1];
     finalTxExistence.to_y <== to_y[2**m - 1];
+    finalTxExistence.nonce <== nonce_from[2**m - 1];
     finalTxExistence.amount <== amount[2**m - 1];
     finalTxExistence.token_type_from <== token_type_from[2**m - 1];
 
@@ -219,15 +236,19 @@ template Main(n,m) {
     }
 
     // final balance checks
+    // TODO fix cmp	    
     token_balance_from[2**m - 1] - amount[2**m - 1] <= token_balance_from[2**m - 1];
     token_balance_to[2**m - 1] + amount[2**m - 1] >= token_balance_to[2**m - 1];
 
+    // TODO fix cmp
     nonce_from[2**m - 1] != NONCE_MAX_VALUE;
 
     // check token types for non-withdraw transfers
-    if (to_x[2**m - 1] != ZERO_ADDRESS_X && to_y[2**m - 1] != ZERO_ADDRESS_Y){
-        token_type_to[2**m - 1] === token_type_from[2**m - 1];
-    }
+    component finalIfBothHighForceEqual = IfBothHighForceEqual();
+    finalIfBothHighForceEqual.check1 <== to_x[2**m -1];
+    finalIfBothHighForceEqual.check2 <== to_y[2**m -1];
+    finalIfBothHighForceEqual.a <== token_type_to[2**m - 1];
+    finalIfBothHighForceEqual.b <== token_type_from[2**m - 1];	    
 
     // update final sender leaf
     component new_final_sender = BalanceLeaf();
@@ -265,12 +286,19 @@ template Main(n,m) {
     component new_final_receiver = BalanceLeaf();
     new_final_receiver.x <== to_x[2**m - 1];
     new_final_receiver.y <== to_y[2**m - 1];
-    if (to_x[2**m - 1] == ZERO_ADDRESS_X && to_y[2**m - 1] == ZERO_ADDRESS_Y){
-        new_final_receiver.token_balance <== token_balance_to[2**m - 1];
-    }
-    if (to_x[2**m - 1] != ZERO_ADDRESS_X && to_y[2**m - 1] != ZERO_ADDRESS_Y){
-        new_final_receiver.token_balance <== token_balance_to[2**m - 1] + amount[2**m - 1];
-    }
+
+    // if receiver is zero address, do not change balance
+    // otherwise add amount
+    component finalAllLow = AllLow(2);
+    finalAllLow.in[0] <== to_x[2**m - 1];
+    finalAllLow.in[1] <== to_y[2**m - 1];
+    
+    component finalIfThenElse = IfAThenBElseC();
+    finalIfThenElse.aCond <== finalAllLow.out;
+    finalIfThenElse.bBranch <== token_balance_to[2**m - 1];
+    finalIfThenElse.cBranch <== token_balance_to[2**m - 1] + amount[2**m - 1];
+    newReceiver[i].token_balance <== finalIfThenElse[i].out;
+
     new_final_receiver.nonce <== nonce_to[2**m - 1];
     new_final_receiver.token_type <== token_type_to[2**m - 1];
 
@@ -286,4 +314,4 @@ template Main(n,m) {
 
 }
 
-component main = Main(2,2);
+component main = Main(4,2);
