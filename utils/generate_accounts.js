@@ -66,6 +66,17 @@ module.exports = {
     isZeroAddress: function(x, y){
         let zeroAddress = module.exports.zeroAddress();
         return (x == zeroAddress[0] && y == zeroAddress[1])
+    },
+
+    coordinatorPrvKey: function(){
+        return prvKey = Buffer.from('1'.toString().padStart(64,'0'), "hex");
+    },
+
+    coordinatorPubKey: function(){
+        const prvKey = module.exports.coordinatorPrvKey()
+        return module.exports.generatePubKeys([prvKey])[0]
     }
+
+    
 
 }

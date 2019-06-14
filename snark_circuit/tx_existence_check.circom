@@ -9,6 +9,7 @@ template TxExistence(k){
     signal input from_y;
     signal input to_x;
     signal input to_y;
+    signal input nonce;
     signal input amount;
     signal input token_type_from;
 
@@ -24,7 +25,8 @@ template TxExistence(k){
     txLeaf.from_x <== from_x;
     txLeaf.from_y <== from_y;
     txLeaf.to_x <== to_x;
-    txLeaf.to_y <== to_y; 
+    txLeaf.to_y <== to_y;
+    txLeaf.nonce <== nonce; 
     txLeaf.amount <== amount;
     txLeaf.token_type_from <== token_type_from;
 

@@ -4,18 +4,22 @@ const eddsa = require("../circomlib/src/eddsa.js");
 
 module.exports = {
 
-    generateTxLeafArray: function(from_x, from_y, to_x, to_y, amounts, token_types){
+    generateTxLeafArray: function(
+        from_x, from_y, to_x, to_y, nonces, amounts, token_types
+    ){
         if (Array.isArray(from_x)){
             txLeafArray = [];
-            for (i = 0; i < from_x.length; i++){
+            for (var i = 0; i < from_x.length; i++){
                 leaf = {}
                 leaf['from_x'] = from_x[i];
                 leaf['from_y'] = from_y[i];
                 leaf['to_x'] = to_x[i];
                 leaf['to_y'] = to_y[i];
+                leaf['nonce'] = nonces[i];
                 leaf['amount'] = amounts[i];
                 leaf['token_type'] = token_types[i];
                 txLeafArray.push(leaf);
+                // console.log(i, leaf)
             }
             return txLeafArray;
         } else {
@@ -33,6 +37,7 @@ module.exports = {
                     leafArray[i]['from_y'].toString(),
                     leafArray[i]['to_x'].toString(),
                     leafArray[i]['to_y'].toString(),
+                    leafArray[i]['nonce'].toString(),
                     leafArray[i]['amount'].toString(),
                     leafArray[i]['token_type'].toString()
                 ])
