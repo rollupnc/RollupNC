@@ -147,8 +147,6 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
         uint[2] memory subtreePosition,
         uint[2] memory subtreeProof
     ) public onlyCoordinator returns(uint256){
-        require(depositSubtreeHeight == 2, "depositSubtreeHeight check failed");
-        // require(queueNumber == 4, "queueNumber check failed");
         uint emptySubtreeRoot = mimcMerkle.zeroCache(2); //empty subtree of height 2
         require(currentRoot == mimcMerkle.getRootFromProof2(
             emptySubtreeRoot, subtreePosition, subtreeProof),
