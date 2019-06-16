@@ -75,7 +75,7 @@ contract MiMCMerkle{
         return r;
     }
 
-    function hashWithdraw(uint[2] memory array) public view returns(uint){
+    function hashPair(uint[2] memory array) public view returns(uint){
         uint r = IV;
         for (uint i = 0; i < array.length; i++){
             r = mimc.MiMCpe7(r, array[i]);
@@ -87,10 +87,10 @@ contract MiMCMerkle{
 
         uint[2] memory level1;
         for (uint i = 0; i < level1.length; i++){
-            level1[i] = hashWithdraw([array[2*i], array[2*i + 1]]);
+            level1[i] = hashPair([array[2*i], array[2*i + 1]]);
         }
         uint level2;
-        level2 = hashWithdraw([level1[0], level1[1]]);
+        level2 = hashPair([level1[0], level1[1]]);
         return level2;
     }
 
