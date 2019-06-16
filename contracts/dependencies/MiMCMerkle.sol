@@ -66,7 +66,7 @@ contract MiMCMerkle{
         return r;
     }
 
-    function hashTx(uint[6] memory array) public view returns(uint){
+    function hashTx(uint[7] memory array) public view returns(uint){
         //[from_x, from_y, to_x, to_y, amt, token_type]
         uint r = IV;
         for (uint i = 0; i < array.length; i++){

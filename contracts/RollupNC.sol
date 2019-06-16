@@ -19,7 +19,7 @@ contract IMiMCMerkle {
         uint256[2] memory
     ) public view returns(uint) {}
     function hashBalance(uint[5] memory) public view returns(uint){}
-    function hashTx(uint[6] memory) public view returns(uint) {}
+    function hashTx(uint[7] memory) public view returns(uint) {}
     function hashWithdraw(uint[2] memory) public view returns(uint){}
     function hashHeight2Tree(uint[4] memory) public view returns(uint){}
 
@@ -201,7 +201,7 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
         uint txLeaf = mimcMerkle.hashTx([
             pubkey_from[0], pubkey_from[1],
             0, 0, //withdraw to zero address
-            txInfo[1], txInfo[2]
+            txInfo[0], txInfo[1], txInfo[2]
         ]);
         require(txRoot == mimcMerkle.getRootFromProof2(
             txLeaf, positionAndProof[0], positionAndProof[1]),

@@ -10,7 +10,7 @@ var prvKey = Buffer.from("4".padStart(64,'0'), "hex");
 var pubKey = eddsa.prv2pub(prvKey);
 
 var nonce = 0;
-var txRoot = bigInt('7053474720276417193178914001357165144196208978730163381613334488911018371101')
+var txRoot = bigInt('655926317945542797074993632917009959927083450268202759196407232656349645955')
 var recipient = bigInt('0xC33Bdb8051D6d2002c0D80A1Dd23A1c9d9FC26E4');
 var m = mimcjs.multiHash([nonce, recipient])
 
