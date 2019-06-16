@@ -1,0 +1,18 @@
+
+{ "type" : tx,
+  "params" : {
+    "from_x":  
+    from_y":
+    "to_x":
+    "to_y":
+    "nonce":
+    "amount":
+    "token_type":
+    "swap_from_x":
+    "swap_from_y":
+    "swap_to_x":
+    "swap_to_y":
+    "swap_amount":
+    "swap_token_type": 
+  }
+}
