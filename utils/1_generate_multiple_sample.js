@@ -1,12 +1,12 @@
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 
-const account = require("../../src/generate_accounts.js");
-const balanceLeaf = require("../../src/generate_balance_leaf.js");
-const txLeaf = require("../../src/generate_tx_leaf.js");
-const merkle = require("../../src/MiMCMerkle.js")
-const update = require("../../src/update.js")
-const eddsa = require("../../circomlib/src/eddsa.js");
+const account = require("../src/generate_accounts.js");
+const balanceLeaf = require("../src/generate_balance_leaf.js");
+const txLeaf = require("../src/generate_tx_leaf.js");
+const merkle = require("../src/MiMCMerkle.js")
+const update = require("../src/update.js")
+const eddsa = require("../circomlib/src/eddsa.js");
 
 const TX_DEPTH = 2
 const BAL_DEPTH = 4
