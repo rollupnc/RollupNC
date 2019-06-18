@@ -1,9 +1,9 @@
 const eddsa = require("../circomlib/src/eddsa.js");
 const txLeaf = require("./generate_tx_leaf.js");
-const account = require("../utils/generate_accounts.js");
-const merkle = require("../utils/MiMCMerkle.js");
-const balance = require("../utils/generate_balance_leaf.js");
-const tx = require("../utils/generate_tx_leaf.js")
+const account = require("./generate_accounts.js");
+const merkle = require("./MiMCMerkle.js");
+const balance = require("./generate_balance_leaf.js");
+const tx = require("./generate_tx_leaf.js")
 var assert = require('assert');
 
 NONCE_MAX_VALUE = 100;

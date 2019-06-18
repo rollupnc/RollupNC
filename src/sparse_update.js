@@ -1,9 +1,9 @@
 const eddsa = require("../circomlib/src/eddsa.js");
 const txLeaf = require("./generate_tx_leaf.js");
-const account = require("../utils/generate_accounts.js");
-const merkle = require("../utils/MiMCMerkle.js");
-const balance = require("../utils/generate_balance_leaf.js");
-const tx = require("../utils/generate_tx_leaf.js")
+const account = require("./generate_accounts.js");
+const merkle = require("./MiMCMerkle.js");
+const balance = require("./generate_balance_leaf.js");
+const tx = require("./generate_tx_leaf.js")
 var assert = require('assert');
 
 NONCE_MAX_VALUE = 100;
@@ -11,52 +11,47 @@ NONCE_MAX_VALUE = 100;
 module.exports = {
 
     processTxArray: function(
-        zeroCache,
         tx_depth,
-        bal_depth,
         pubKeys,
-        balanceLeafArray, // nonempty leaves in balance tree
+        nonEmptyBalanceLeafArray,
         from_accounts_idx,
         to_accounts_idx,
         amounts,
         tx_token_types,
-        signatures
+        signatures,
     ){
 
-        assert(zeroCache.length == bal_depth)
-        const zeroLeafHash = zeroCache[0]
-        const txPosArray = merkle.generateMerklePosArray(tx_depth)
+        txPosArray = merkle.generateMerklePosArray(tx_depth)
 
-        var originalState
-        var intermediateRoots = new Array(2**(tx_depth+1))
+        intermediateRoots = new Array(2**(tx_depth+1))
 
-        var fromProofs = new Array(2**tx_depth)
-        var newToProofs = new Array(2**tx_depth)
+        fromProofs = new Array(2**tx_depth)
+        newToProofs = new Array(2**tx_depth)
 
-        var fromPosArray = new Array(2**tx_depth)
-        var toPosArray = new Array(2**tx_depth)
+        fromPosArray = new Array(2**tx_depth)
+        toPosArray = new Array(2**tx_depth)
 
-        const from_accounts = module.exports.pickByIndices(pubKeys, from_accounts_idx)
-        const to_accounts = module.exports.pickByIndices(pubKeys, to_accounts_idx)
+        from_accounts = module.exports.pickByIndices(pubKeys, from_accounts_idx)
+        to_accounts = module.exports.pickByIndices(pubKeys, to_accounts_idx)
 
-        const from_x = account.getPubKeysX(from_accounts)
-        const from_y = account.getPubKeysY(from_accounts)
+        from_x = account.getPubKeysX(from_accounts)
+        from_y = account.getPubKeysY(from_accounts)
 
-        var R8xArray = module.exports.stringifyArray(txLeaf.getSignaturesR8x(signatures))
-        var R8yArray = module.exports.stringifyArray(txLeaf.getSignaturesR8y(signatures))
-        var SArray = module.exports.stringifyArray(txLeaf.getSignaturesS(signatures))
+        R8xArray = module.exports.stringifyArray(txLeaf.getSignaturesR8x(signatures))
+        R8yArray = module.exports.stringifyArray(txLeaf.getSignaturesR8y(signatures))
+        SArray = module.exports.stringifyArray(txLeaf.getSignaturesS(signatures))
 
-        var nonceFromArray = new Array(2**tx_depth)
+        nonceFromArray = new Array(2**tx_depth)
 
-        const to_x = account.getPubKeysX(to_accounts)
-        const to_y = account.getPubKeysY(to_accounts)
+        to_x = account.getPubKeysX(to_accounts)
+        to_y = account.getPubKeysY(to_accounts)
 
-        var nonceToArray = new Array(2**tx_depth)
+        nonceToArray = new Array(2**tx_depth)
 
-        var tokenBalanceFromArray = new Array(2**tx_depth)
-        var tokenBalanceToArray = new Array(2**tx_depth)
-        var tokenTypeFromArray = new Array(2**tx_depth)
-        var tokenTypeToArray = new Array(2**tx_depth)
+        tokenBalanceFromArray = new Array(2**tx_depth)
+        tokenBalanceToArray = new Array(2**tx_depth)
+        tokenTypeFromArray = new Array(2**tx_depth)
+        tokenTypeToArray = new Array(2**tx_depth)
 
         const txArray = txLeaf.generateTxLeafArray(
             from_x, from_y, to_x, to_y, amounts, tx_token_types
@@ -68,46 +63,31 @@ module.exports = {
 
         const txProofs = merkle.generateMerkleProofArray(txTree, txLeafHashes)
         
-        var balanceHashArray = balance.hashBalanceLeafArray(balanceLeafArray)
-        const paddedBalanceHashArray = merkle.padLeafArray(balanceHashArray, zeroLeafHash)
-        var balanceSubtree = merkle.treeFromLeafArray(paddedBalanceHashArray)
-        const subtreeHeight = merkle.getBase2Log(paddedBalanceHashArray.length)
-        const subtreeRoot = merkle.rootFromLeafArray(paddedBalanceHashArray)
-        const subtreeProof = merkle.getProofEmpty(subtreeHeight, zeroCache)
-        
-        originalState = merkle.rootFromLeafAndPath(subtreeRoot, 0, subtreeProof)
+        var nonemptyBalanceLeafHashArray = balance.hashBalanceLeafArray(nonEmptyBalanceLeafArray)
+        var nonemptyBalanceRoot = merkle.rootFromLeafArray(nonemptyBalanceLeafHashArray)
+        const originalState = merkle.rootFromLeafAndPath(nonemptyBalanceRoot, subtreeProof)
 
         intermediateRoots[0] = originalState
 
         for (k = 0; k < 2**tx_depth; k++){
 
-            nonceFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['nonce']
-            nonceToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['nonce']
+            nonceFromArray[k] = nonEmptyBalanceLeafArray[from_accounts_idx[k]]['nonce']
+            nonceToArray[k] = nonEmptyBalanceLeafArray[to_accounts_idx[k]]['nonce']
     
-            tokenBalanceFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['balance']
-            tokenBalanceToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['balance']
-            tokenTypeFromArray[k] = balanceLeafArrayReceiver[from_accounts_idx[k]]['token_type']
-            tokenTypeToArray[k] = balanceLeafArrayReceiver[to_accounts_idx[k]]['token_type']
+            tokenBalanceFromArray[k] = nonEmptyBalanceLeafArray[from_accounts_idx[k]]['balance']
+            tokenBalanceToArray[k] = nonEmptyBalanceLeafArray[to_accounts_idx[k]]['balance']
+            tokenTypeFromArray[k] = nonEmptyBalanceLeafArray[from_accounts_idx[k]]['token_type']
+            tokenTypeToArray[k] = nonEmptyBalanceLeafArray[to_accounts_idx[k]]['token_type']
 
             fromPosArray[k] = merkle.idxToBinaryPos(from_accounts_idx[k], tx_depth)
             toPosArray[k] = merkle.idxToBinaryPos(to_accounts_idx[k], tx_depth)
 
-            fromProofs[k] = merkle.getProof(from_accounts_idx[k], balanceSubtree, paddedBalanceHashArray).push(subtreeProof)
+            fromProofs[k] = merkle.getProof(from_accounts_idx[k], balanceTreeReceiver, balanceLeafHashArrayReceiver)
 
             output = module.exports.processTx(
-                k, // tx index in tx tree
-                txArray[k], // tx leaf
-                txProofs[k], // inclusion proof of tx in tx tree
-                signatures[k], // signature of tx
-                txRoot, // root of tx tree
-                from_accounts_idx[k], // sender index in balance tree
-                to_accounts_idx[k], // receiver index in balance tree
-                balanceLeafArray[from_accounts_idx[k]], //sender balance leaf
-                balanceLeafArray[to_accounts_idx[k]], // receiver balance leaf
-                fromProofs[k], // inclusion proof of sender in balance tree 
-                subtreeRoot[k], // root of nonempty subtree
-                subtreeProof[k], // inclusion proof of subtree in tree
-                intermediateRoots[2*k] // root of whole tree
+                k, txArray, txProofs[k], signatures[k], txRoot,
+                from_accounts_idx[k], to_accounts_idx[k], balanceLeafArrayReceiver,
+                fromProofs[k], intermediateRoots[2*k]
             )
 
             intermediateRoots[2*k + 1] = output['newRootSender'] ;
@@ -162,23 +142,28 @@ module.exports = {
     },
 
     processTx: function(
-        txIdx, txLeaf, txProof, signature, txRoot,
-        fromLeafIdx, toLeafIdx, fromLeaf, toLeaf,
-        fromProof, subtreeProof, oldSubtreeRoot, oldRoot
+        txIdx, txLeafArray, txProof, signature, txRoot,
+        fromLeafIdx, toLeafIdx, balanceLeafArray,
+        fromProof, oldBalanceRoot
     ){
+
 
             // parse txLeaf
             txDepth = txProof.length //depth of tx tree
+            const txLeaf = txLeafArray[txIdx] //the transaction being processed
             txLeafHash = tx.hashTxLeafArray([txLeaf])[0] // hash of tx being processed
-            txPos = merkle.idxToBinaryPos(txIdx, txDepth) //binary vector
 
-            //check tx existence
-            assert(merkle.verifyProof(txLeafHash, txIdx, txProof, txRoot))
+            txPos = merkle.idxToBinaryPos(txIdx, txDepth) //binary vector
 
             // parse balanceLeaves
             balDepth = fromProof.length; // depth of balance tree
+            const fromLeaf = balanceLeafArray[fromLeafIdx] //sender account
             fromLeafHash = balance.hashBalanceLeafArray([fromLeaf])[0] // hash of sender acct
+            const toLeaf = balanceLeafArray[toLeafIdx] //receiver account
             toLeafHash = balance.hashBalanceLeafArray([toLeaf])[0] //hash of receiver acct
+
+            //check tx existence
+            assert(merkle.verifyProof(txLeafHash, txIdx, txProof, txRoot))
 
             // balance checks
             module.exports.checkBalances(txLeaf, fromLeaf, toLeaf)
@@ -236,8 +221,8 @@ module.exports = {
 
     getNewLeaves: function(tx, fromLeaf, toLeaf){
 
-        fromLeafCopy = balance.getZeroLeaf()
-        toLeafCopy = balance.getZeroLeaf()
+        fromLeafCopy = balance.zeroLeaf()
+        toLeafCopy = balance.zeroLeaf()
 
         newFromLeaf = Object.assign(fromLeafCopy, fromLeaf)
         newToLeaf = Object.assign(toLeafCopy, toLeaf)

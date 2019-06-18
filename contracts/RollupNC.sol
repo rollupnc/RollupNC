@@ -1,13 +1,10 @@
-pragma solidity >=0.4.21;
+pragma solidity ^0.5.0;
 
-import "./Verifier.sol";
-import "./WithdrawSigVerifier.sol";
-
+import "../build/Update_verifier.sol";
+import "../build/Withdraw_verifier.sol";
 
 contract IMiMC {
-
     function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
-
 }
 
 contract IMiMCMerkle {
@@ -22,7 +19,6 @@ contract IMiMCMerkle {
     function hashTx(uint[7] memory) public view returns(uint) {}
     function hashPair(uint[2] memory) public view returns(uint){}
     function hashHeight2Tree(uint[4] memory) public view returns(uint){}
-
 }
 
 contract ITokenRegistry {
@@ -38,7 +34,7 @@ contract ITokenRegistry {
     function approveToken(address tokenContract) public onlyCoordinator{}
 }
 
-contract RollupNC is Verifier, WithdrawSigVerifier {
+contract RollupNC is Update_verifier, Withdraw_verifier{
 
     IMiMC public mimc;
     IMiMCMerkle public mimcMerkle;
@@ -91,7 +87,7 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
         ) public onlyCoordinator {
         require(currentRoot == input[2], "input does not match current root");
         //validate proof
-        require(Verifier.verifyProof(a,b,c,input),
+        require(update_verifyProof(a,b,c,input),
         "SNARK proof is invalid");
         // update merkle root
         currentRoot = input[0];
@@ -181,7 +177,7 @@ contract RollupNC is Verifier, WithdrawSigVerifier {
 
         // message is hash of nonce and recipient address
         uint m = mimcMerkle.hashPair([txInfo[0], uint(recipient)]);
-        require(WithdrawSigVerifier.verifyProof(
+        require(withdraw_verifyProof(
             a, b, c, [pubkey_from[0], pubkey_from[1], m]),
             "eddsa signature is not valid");
 
