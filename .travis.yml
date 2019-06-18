@@ -3,4 +3,4 @@ sudo: required
 language: node_js
 node_js:
   - "10"
-script: npm test
+script: ./utils/run_travis_test.sh

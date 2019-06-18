@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "travis": "nohup npx npm run rpc",
     "test": "npx truffle test",
     "rpc": "npx ganache-cli -d --mnemonic 'close fly dolphin oblige weasel layer sail clock forget tree method effort remove quiz whip'",
     "deploy-mimc": "node deployMimcHash.js"
