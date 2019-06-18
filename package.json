@@ -23,6 +23,7 @@
   "homepage": "https://github.com/barryWhiteHat/RollupNC#readme",
   "dependencies": {
     "blake-hash": "^1.1.0",
+    "circom": "0.0.29",
     "ethereumjs-tx": "^1.3.7",
     "ganache-cli": "^6.4.1",
     "original-require": "^1.0.1",
