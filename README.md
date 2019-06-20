@@ -102,8 +102,6 @@ class Transaction = {
 }
 ```
 TODO: implement atomic swaps and fees fields in `Transfer` object
-TODO: add `nonce` into current implementation to prevent replay attacks
-
 ```
 tx_leaf = hash([from_pubKey, to_pubKey, amount, nonce, token_type])
 ```
