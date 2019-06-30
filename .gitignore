@@ -3,3 +3,9 @@ node_modules/
 proving_key.json
 verification_key.json
 circuit.json
+update_circuit.json
+update_proving_key.json
+update_verification_key.json
+withdraw_circuit.json
+withdraw_proving_key.json
+withdraw_verification_key.json
