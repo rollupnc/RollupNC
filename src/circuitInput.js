@@ -17,10 +17,8 @@ module.exports = function getCircuitInput(stateTransition){
     var paths2rootTo = new Array(2 ** depth);
     var paths2rootToPos = new Array(2 ** depth);
 
-    var indexFrom = new Array(2 ** depth);
     var balanceFrom = new Array(2 ** depth);
 
-    var indexTo = new Array(2 ** depth);
     var balanceTo = new Array(2 ** depth);
     var nonceTo = new Array(2 ** depth);
     var tokenTypeTo = new Array(2 ** depth);
@@ -41,10 +39,8 @@ module.exports = function getCircuitInput(stateTransition){
 
         intermediateRoots[2*i + 2] = delta.rootFromNewReceiver;
 
-        indexFrom[i] = delta.indexFrom;
         balanceFrom[i] = delta.balanceFrom;
         
-        indexTo[i] = delta.indexTo;
         balanceTo[i] = delta.balanceTo;
         nonceTo[i] = delta.nonceTo;
         tokenTypeTo[i] = delta.tokenTypeTo;
@@ -101,9 +97,7 @@ module.exports = function getCircuitInput(stateTransition){
         R8x: stringifyBigInts(R8x),
         R8y: stringifyBigInts(R8y),
         S: stringifyBigInts(S),
-        indexFrom: indexFrom,
         balanceFrom: balanceFrom,
-        indexTo: indexTo,
         balanceTo: balanceTo,
         nonceTo: nonceTo,
         tokenTypeTo: tokenTypeTo

@@ -19,7 +19,7 @@ module.exports = class Account {
     
     hashAccount(){
         const accountHash = mimcjs.multiHash([
-            this.index.toString(),
+            // this.index.toString(),
             this.pubkeyX.toString(),
             this.pubkeyY.toString(),
             this.balance.toString(),

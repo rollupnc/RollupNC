@@ -3,7 +3,6 @@ include "./leaf_existence.circom";
 
 template BalanceExistence(k){
 
-    signal input index;
     signal input x;
     signal input y;
     signal input balance;
@@ -15,7 +14,6 @@ template BalanceExistence(k){
     signal input paths2root[k];
 
     component balanceLeaf = BalanceLeaf();
-    balanceLeaf.index <== index;
     balanceLeaf.x <== x;
     balanceLeaf.y <== y;
     balanceLeaf.balance <== balance;

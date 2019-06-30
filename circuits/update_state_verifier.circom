@@ -55,10 +55,8 @@ template Main(n,m) {
     signal private input S[2**m]; // sender signature
 
     // additional account info (not included in tx)
-    signal private input indexFrom[2**m]; // sender account index
     signal private input balanceFrom[2**m]; // sender token balance
 
-    signal private input indexTo[2**m]; // receiver account index
     signal private input balanceTo[2**m]; // receiver token balance
     signal private input nonceTo[2**m]; // receiver account nonce
     signal private input tokenTypeTo[2**m]; // receiver token type
@@ -112,7 +110,6 @@ template Main(n,m) {
 
         //-----SENDER IN TREE 1 BEFORE DEDUCTING CHECK -----//
         senderExistence[i] = BalanceExistence(n);
-        senderExistence[i].index <== indexFrom[i];
         senderExistence[i].x <== fromX[i];
         senderExistence[i].y <== fromY[i];
         senderExistence[i].balance <== balanceFrom[i];
@@ -145,7 +142,6 @@ template Main(n,m) {
 
         //-----CHECK SENDER IN TREE 2 AFTER DEDUCTING -----//
         newSender[i] = BalanceLeaf();
-        newSender[i].index <== indexFrom[i];
         newSender[i].x <== fromX[i];
         newSender[i].y <== fromY[i];
         newSender[i].balance <== balanceFrom[i] - amount[i];
@@ -166,7 +162,6 @@ template Main(n,m) {
 
         //-----RECEIVER IN TREE 2 BEFORE INCREMENTING CHECK-----//
         receiverExistence[i] = BalanceExistence(n);
-        receiverExistence[i].index <== indexTo[i];
         receiverExistence[i].x <== toX[i];
         receiverExistence[i].y <== toY[i];
         receiverExistence[i].balance <== balanceTo[i];
@@ -182,7 +177,6 @@ template Main(n,m) {
 
         //-----CHECK RECEIVER IN TREE 3 AFTER INCREMENTING-----//
         newReceiver[i] = BalanceLeaf();
-        newReceiver[i].index <== indexTo[i];
         newReceiver[i].x <== toX[i];
         newReceiver[i].y <== toY[i];
 
