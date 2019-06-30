@@ -1,12 +1,12 @@
 include "../circomlib/circuits/mimc.circom";
 include "../circomlib/circuits/eddsamimc.circom";
 include "../circomlib/circuits/bitify.circom";
-include "../circomlib/circuits/comparators.circom";
 include "./helpers/tx_existence_check.circom";
 include "./helpers/balance_existence_check.circom";
 include "./helpers/balance_leaf.circom";
 include "./helpers/get_merkle_root.circom";
 include "./helpers/if_gadgets.circom";
+
 
 template Main(n,m) {
 // n is depth of balance tree
@@ -82,11 +82,12 @@ template Main(n,m) {
     component ifThenElse[2**m];
     component computedRootFromNewReceiver[2**m];
 
+
     currentState === intermediateRoots[0];
 
-    for (var i = 0; i < 2**m; i++) {
+    for (var i = 0; i < 2**m - 1; i++) {
 
-        //-----TX EXISTENCE AND SIG CHECK -----//
+        // transactions existence and signature check
         txExistence[i] = TxExistence(m);
         txExistence[i].fromX <== fromX[i];
         txExistence[i].fromY <== fromY[i];
@@ -106,9 +107,8 @@ template Main(n,m) {
         txExistence[i].R8x <== R8x[i];
         txExistence[i].R8y <== R8y[i];
         txExistence[i].S <== S[i];
-        //-----END TX EXISTENCE AND SIG CHECK -----//
-
-        //-----SENDER IN TREE 1 BEFORE DEDUCTING CHECK -----//
+    
+        // sender existence check
         senderExistence[i] = BalanceExistence(n);
         senderExistence[i].x <== fromX[i];
         senderExistence[i].y <== fromY[i];
@@ -121,10 +121,7 @@ template Main(n,m) {
             senderExistence[i].paths2rootPos[j] <== paths2rootFromPos[i, j];
             senderExistence[i].paths2root[j] <== paths2rootFrom[i, j];
         }
-        //-----END SENDER IN TREE 1 BEFORE DEDUCTING CHECK -----//
-
-
-        // TODO: check this
+    
         // balance checks
         balanceFrom[i] - amount[i] <= balanceFrom[i];
         balanceTo[i] + amount[i] >= balanceTo[i];
@@ -139,8 +136,7 @@ template Main(n,m) {
         ifBothHighForceEqual[i].b <== tokenTypeFrom[i];
         //-----END CHECK TOKEN TYPES-----//  
 
-
-        //-----CHECK SENDER IN TREE 2 AFTER DEDUCTING -----//
+        // subtract amount from sender balance; increase sender nonce 
         newSender[i] = BalanceLeaf();
         newSender[i].x <== fromX[i];
         newSender[i].y <== fromY[i];
@@ -157,10 +153,12 @@ template Main(n,m) {
         }
 
         // check that intermediate root is consistent with input
+
         computedRootFromNewSender[i].out === intermediateRoots[2*i  + 1];
         //-----END SENDER IN TREE 2 AFTER DEDUCTING CHECK-----//
 
-        //-----RECEIVER IN TREE 2 BEFORE INCREMENTING CHECK-----//
+
+        // receiver existence check in intermediate root from new sender
         receiverExistence[i] = BalanceExistence(n);
         receiverExistence[i].x <== toX[i];
         receiverExistence[i].y <== toY[i];
@@ -173,7 +171,6 @@ template Main(n,m) {
             receiverExistence[i].paths2rootPos[j] <== paths2rootToPos[i, j] ;
             receiverExistence[i].paths2root[j] <== paths2rootTo[i, j];
         }
-        //-----END CHECK RECEIVER IN TREE 2 BEFORE INCREMENTING -----//
 
         //-----CHECK RECEIVER IN TREE 3 AFTER INCREMENTING-----//
         newReceiver[i] = BalanceLeaf();
@@ -195,6 +192,7 @@ template Main(n,m) {
         newReceiver[i].nonce <== nonceTo[i];
         newReceiver[i].tokenType <== tokenTypeTo[i];
 
+
         // get intermediate root from new receiver leaf
         computedRootFromNewReceiver[i] = GetMerkleRoot(n);
         computedRootFromNewReceiver[i].leaf <== newReceiver[i].out;
@@ -208,6 +206,7 @@ template Main(n,m) {
         //-----END CHECK RECEIVER IN TREE 3 AFTER INCREMENTING-----//
     }
     out <== computedRootFromNewReceiver[2**m - 1].out;
+
 
 }
 
