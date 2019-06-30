@@ -17,9 +17,9 @@ template TxExistence(k){
     signal input paths2rootPos[k];
     signal input paths2root[k];
 
-    signal input R8x;
-    signal input R8y;
-    signal input S;
+    // signal input R8x;
+    // signal input R8y;
+    // signal input S;
 
     component txLeaf = TxLeaf();
     txLeaf.fromX <== fromX;
