@@ -10,7 +10,9 @@ module.exports = class TxTree extends Tree{
 
     checkTxExistence(tx, txProof){
         const txIdx = this.findTxIdx(tx.hash);
-        this.verifyProof(tx.hash, txIdx, txProof);
+        if (!this.verifyProof(tx.hash, txIdx, txProof)){
+            throw "tx does not exist"
+        }
     }
 
     getTxProofAndProofPos(tx){

@@ -1,3 +1,5 @@
+const {stringifyBigInts, unstringifyBigInts} = require('../src/stringifybigint.js')
+
 module.exports = function getCircuitInput(stateTransition){
 
     const currentState = stateTransition.originalState;
@@ -12,10 +14,15 @@ module.exports = function getCircuitInput(stateTransition){
     var intermediateRoots = new Array(2 ** (depth + 1) + 1);
     var paths2rootFrom = new Array(2 ** depth);
     var paths2rootFromPos = new Array(2 ** depth);
+    var paths2rootTo = new Array(2 ** depth);
+    var paths2rootToPos = new Array(2 ** depth);
 
+    var indexFrom = new Array(2 ** depth);
     var balanceFrom = new Array(2 ** depth);
-    var nonceTo = new Array(2 ** depth);
+
+    var indexTo = new Array(2 ** depth);
     var balanceTo = new Array(2 ** depth);
+    var nonceTo = new Array(2 ** depth);
     var tokenTypeTo = new Array(2 ** depth);
 
     intermediateRoots[0] = currentState;
@@ -26,7 +33,7 @@ module.exports = function getCircuitInput(stateTransition){
 
         intermediateRoots[2*i + 1] = delta.rootFromNewSender;
 
-        paths2rootFrom[i] = deltas.senderProof,
+        paths2rootFrom[i] = delta.senderProof,
         paths2rootFromPos[i] = delta.senderProofPos,
 
         paths2rootTo[i] = delta.receiverProof,
@@ -34,7 +41,10 @@ module.exports = function getCircuitInput(stateTransition){
 
         intermediateRoots[2*i + 2] = delta.rootFromNewReceiver;
 
+        indexFrom[i] = delta.indexFrom;
         balanceFrom[i] = delta.balanceFrom;
+        
+        indexTo[i] = delta.indexTo;
         balanceTo[i] = delta.balanceTo;
         nonceTo[i] = delta.nonceTo;
         tokenTypeTo[i] = delta.tokenTypeTo;
@@ -72,26 +82,28 @@ module.exports = function getCircuitInput(stateTransition){
     }
     
     return {
-        txRoot: txTree.root,
-        paths2txRoot: paths2txRoot,
+        txRoot: stringifyBigInts(txTree.root),
+        paths2txRoot: stringifyBigInts(paths2txRoot),
         paths2txRootPos: paths2txRootPos,
-        currentState: currentState,
-        intermediateRoots: intermediateRoots,
-        paths2rootFrom: paths2rootFrom,
+        currentState: stringifyBigInts(currentState),
+        intermediateRoots: stringifyBigInts(intermediateRoots),
+        paths2rootFrom: stringifyBigInts(paths2rootFrom),
         paths2rootFromPos: paths2rootFromPos,
-        paths2rootTo: paths2rootTo,
+        paths2rootTo: stringifyBigInts(paths2rootTo),
         paths2rootToPos: paths2rootToPos,
-        fromX: fromX,
-        fromY: fromY,
-        toX: toX,
-        toY: toY,
+        fromX: stringifyBigInts(fromX),
+        fromY: stringifyBigInts(fromY),
+        toX: stringifyBigInts(toX),
+        toY: stringifyBigInts(toY),
         nonceFrom: nonceFrom,
         amount: amount,
         tokenTypeFrom: tokenTypeFrom,
-        R8x: R8x,
-        R8y: R8x,
-        S: S,
+        R8x: stringifyBigInts(R8x),
+        R8y: stringifyBigInts(R8y),
+        S: stringifyBigInts(S),
+        indexFrom: indexFrom,
         balanceFrom: balanceFrom,
+        indexTo: indexTo,
         balanceTo: balanceTo,
         nonceTo: nonceTo,
         tokenTypeTo: tokenTypeTo

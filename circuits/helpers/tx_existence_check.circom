@@ -3,7 +3,7 @@ include "./leaf_existence.circom";
 include "../../circomlib/circuits/eddsamimc.circom";
 
 template TxExistence(k){
-// m is depth of tx tree
+// k is depth of tx tree
 
     signal input fromX;
     signal input fromY;

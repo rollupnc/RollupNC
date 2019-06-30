@@ -101,12 +101,6 @@ for (var i = 0; i < txs.length; i++){
 }
 
 const txTree = new TxTree(txs);
-// console.log(txTree.leafNodes);
-
-const txProofs = new Array(2**TX_DEPTH)
-for (var jj = 0; jj < 2**TX_DEPTH; jj++){
-    txProofs[jj] = txTree.getProof(jj);
-}
 
 const stateTransition = accountTree.processTxArray(txTree);
 const inputs = getCircuitInput(stateTransition);

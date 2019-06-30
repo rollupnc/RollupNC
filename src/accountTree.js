@@ -1,5 +1,4 @@
 const Tree = require("./tree.js");
-const treeHelper = require("./treeHelper.js");
 
 module.exports = class AccountTree extends Tree{
     constructor(
@@ -24,12 +23,12 @@ module.exports = class AccountTree extends Tree{
 
             // verify tx exists in tx tree
             const [txProof, txProofPos] = txTree.getTxProofAndProofPos(tx);
-
             txTree.checkTxExistence(tx, txProof);
             paths2txRoot[i] = txProof;
             paths2txRootPos[i] = txProofPos;
 
             // process transaction
+            console.log('processing tx', i)
             deltas[i] = this.processTx(tx);
 
         }
@@ -46,27 +45,46 @@ module.exports = class AccountTree extends Tree{
 
     processTx(tx){
         const sender = this.findAccountByPubkey(tx.fromX, tx.fromY);
+        const indexFrom = sender.index;
         const balanceFrom = sender.balance;
 
         const receiver = this.findAccountByPubkey(tx.toX, tx.toY);
+        const indexTo = receiver.index;
         const balanceTo = receiver.balance;
         const nonceTo = receiver.nonce;
         const tokenTypeTo = receiver.tokenType;
 
+        // for (var i = 0; i < this.innerNodes.length; i++){
+        //     console.log('depth', i, this.innerNodes[i])
+        // }
+        // console.log('accounts', this.leafNodes)
+
         const [senderProof, senderProofPos] = this.getAccountProof(sender);
         this.checkAccountExistence(sender, senderProof);
         tx.checkSignature();
+        this.checkTokenTypes(tx);
 
         sender.debitAndIncreaseNonce(tx.amount);
-        this.root = treeHelper.rootFromLeafAndPath(sender.hash, sender.index, senderProof);
+        this.leafNodes[sender.index] = sender.hash;
+
+        this.updateInnerNodes(sender.hash, sender.index, senderProof);
+        this.root = this.innerNodes[0][0]
         const rootFromNewSender = this.root;
 
         const [receiverProof, receiverProofPos] = this.getAccountProof(receiver);
+        
         this.checkAccountExistence(receiver, receiverProof);
 
         receiver.credit(tx.amount);
-        this.root = treeHelper.rootFromLeafAndPath(receiver.hash, receiver.index, receiverProof);
+        this.leafNodes[receiver.index] = receiver.hash;
+        this.updateInnerNodes(receiver.hash, receiver.index, receiverProof);
+        this.root = this.innerNodes[0][0]
         const rootFromNewReceiver = this.root;
+
+        console.log('newReceiverHash', receiver.hash)
+        console.log('newReceiverHash', this.leafNodes[receiver.index])
+        console.log('rootFromNewReceiver', rootFromNewReceiver)
+
 
         return {
             senderProof: senderProof,
@@ -75,15 +93,32 @@ module.exports = class AccountTree extends Tree{
             receiverProof: receiverProof,
             receiverProofPos: receiverProofPos,
             rootFromNewReceiver: rootFromNewReceiver,
+            indexFrom: indexFrom,
             balanceFrom: balanceFrom,
+            indexTo: indexTo,
             balanceTo: balanceTo,
             nonceTo: nonceTo,
             tokenTypeTo: tokenTypeTo
         }
     }
 
+    checkTokenTypes(tx){
+        const sender = this.findAccountByPubkey(tx.fromX, tx.fromY)
+        const receiver = this.findAccountByPubkey(tx.toX, tx.toY)
+        const sameTokenType = (
+            (tx.tokenType == sender.tokenType && tx.tokenType == receiver.tokenType)
+            || receiver.tokenType == 0 //withdraw token type doesn't have to match
+        );
+        if (!sameTokenType){
+            throw "token types do not match"
+        }
+    }
+
     checkAccountExistence(account, accountProof){
         if (!this.verifyProof(account.hash, account.index, accountProof)){
+            console.log('given account hash', account.hash)
+            console.log('given account proof', accountProof)
+
             throw "account does not exist"
         }
     }

@@ -12,8 +12,8 @@ module.exports = class Account {
         this.balance = _balance;
         this.nonce = _nonce;
         this.tokenType = _tokenType;
-        this.prvKey = _prvKey;
 
+        this.prvKey = _prvKey;
         this.hash = this.hashAccount()
     }
     
@@ -30,14 +30,16 @@ module.exports = class Account {
     }
 
     debitAndIncreaseNonce(amount){
-        this.balance = this.balance - amount;
+        this.balance = this.balance - amount; 
         this.nonce++;
         this.hash = this.hashAccount()
     }
 
     credit(amount){
-        this.balance = this.balance + amount;
-        this.hash = this.hashAccount()
+        if (this.index > 0){ // do not credit zero leaf
+            this.balance = this.balance + amount;
+            this.hash = this.hashAccount()
+        }
     }
 
 }
