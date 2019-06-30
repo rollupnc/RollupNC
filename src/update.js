@@ -1,9 +1,7 @@
 const eddsa = require("../circomlib/src/eddsa.js");
-const txLeaf = require("./generate_tx_leaf.js");
-const account = require("./generate_accounts.js");
-const merkle = require("./MiMCMerkle.js");
-const balance = require("./generate_balance_leaf.js");
-const tx = require("./generate_tx_leaf.js")
+const account = require("./account.js");
+const merkle = require("./tree.js");
+const tx = require("./transaction.js")
 var assert = require('assert');
 
 NONCE_MAX_VALUE = 100;
@@ -11,8 +9,8 @@ NONCE_MAX_VALUE = 100;
 module.exports = {
 
     processTxArray: function(
-        tx_depth,
-        bal_depth,
+        TX_DEPTH,
+        BAL_DEPTH,
         pubKeys,
         balanceLeafArrayReceiver,
         from_accounts_idx,
@@ -39,9 +37,9 @@ module.exports = {
         from_x = account.getPubKeysX(from_accounts)
         from_y = account.getPubKeysY(from_accounts)
 
-        R8xArray = module.exports.stringifyArray(txLeaf.getSignaturesR8x(signatures))
-        R8yArray = module.exports.stringifyArray(txLeaf.getSignaturesR8y(signatures))
-        SArray = module.exports.stringifyArray(txLeaf.getSignaturesS(signatures))
+        R8xArray = module.exports.stringifyArray(tx.getSignaturesR8x(signatures))
+        R8yArray = module.exports.stringifyArray(tx.getSignaturesR8y(signatures))
+        SArray = module.exports.stringifyArray(tx.getSignaturesS(signatures))
 
         nonceFromArray = new Array(2**tx_depth)
 
@@ -55,18 +53,18 @@ module.exports = {
         tokenTypeFromArray = new Array(2**tx_depth)
         tokenTypeToArray = new Array(2**tx_depth)
 
-        const txArray = txLeaf.generateTxLeafArray(
+        const txArray = tx.generateTxLeafArray(
             from_x, from_y, to_x, to_y, tx_nonces, amounts, tx_token_types
         )
 
-        const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
+        const txLeafHashes = tx.hashTxLeafArray(txArray)
         const txTree = merkle.treeFromLeafArray(txLeafHashes)
         const txRoot = merkle.rootFromLeafArray(txLeafHashes)
 
         const txProofs = merkle.generateMerkleProofArray(txTree, txLeafHashes)
         
         // console.log('processTxArray balance leaf array', balanceLeafArrayReceiver)
-        var balanceLeafHashArrayReceiver = balance.hashBalanceLeafArray(balanceLeafArrayReceiver)
+        var balanceLeafHashArrayReceiver = account.hashBalanceLeafArray(balanceLeafArrayReceiver)
         
         var balanceTreeReceiver = merkle.treeFromLeafArray(balanceLeafHashArrayReceiver)
         const originalState = merkle.rootFromLeafArray(balanceLeafHashArrayReceiver)
@@ -165,9 +163,9 @@ module.exports = {
             // parse balanceLeaves
             balDepth = fromProof.length; // depth of balance tree
             const fromLeaf = balanceLeafArray[fromLeafIdx] //sender account
-            fromLeafHash = balance.hashBalanceLeafArray([fromLeaf])[0] // hash of sender acct
+            fromLeafHash = account.hashBalanceLeafArray([fromLeaf])[0] // hash of sender acct
             const toLeaf = balanceLeafArray[toLeafIdx] //receiver account
-            toLeafHash = balance.hashBalanceLeafArray([toLeaf])[0] //hash of receiver acct
+            toLeafHash = account.hashBalanceLeafArray([toLeaf])[0] //hash of receiver acct
 
             //check tx existence
             assert(merkle.verifyProof(txLeafHash, txIdx, txProof, txRoot))
@@ -196,7 +194,7 @@ module.exports = {
             newLeafArraySender = balanceLeafArray.slice(0) //clone leaf array 
             newLeafArraySender[fromLeafIdx] = newFromLeaf
 
-            newLeafHashArraySender = balance.hashBalanceLeafArray(newLeafArraySender)
+            newLeafHashArraySender = account.hashBalanceLeafArray(newLeafArraySender)
             newTreeSender = merkle.treeFromLeafArray(newLeafHashArraySender)
             newRootSender = merkle.rootFromLeafArray(newLeafHashArraySender)
 
@@ -209,7 +207,7 @@ module.exports = {
             // update receiver leaf to get second intermediate root
             newLeafArrayReceiver = newLeafArraySender.slice(0) //clone leaf array
             newLeafArrayReceiver[toLeafIdx] = newToLeaf
-            newLeafHashArrayReceiver = balance.hashBalanceLeafArray(newLeafArrayReceiver)
+            newLeafHashArrayReceiver = account.hashBalanceLeafArray(newLeafArrayReceiver)
             newTreeReceiver = merkle.treeFromLeafArray(newLeafHashArrayReceiver)
             newRootReceiver = merkle.rootFromLeafArray(newLeafHashArrayReceiver)
 
@@ -228,8 +226,8 @@ module.exports = {
 
     getNewLeaves: function(tx, fromLeaf, toLeaf){
 
-        fromLeafCopy = balance.zeroLeaf()
-        toLeafCopy = balance.zeroLeaf()
+        fromLeafCopy = account.zeroLeaf()
+        toLeafCopy = account.zeroLeaf()
 
         newFromLeaf = Object.assign(fromLeafCopy, fromLeaf)
         newToLeaf = Object.assign(toLeafCopy, toLeaf)
@@ -243,8 +241,8 @@ module.exports = {
         return [newFromLeaf, newToLeaf]
     },
 
-    checkSignature: function(tx, fromLeaf, signature){
-        assert(eddsa.verifyMiMC(txLeaf.hashTxLeafArray([tx]), signature, 
+    checkSignature: function(txLeaf, fromLeaf, signature){
+        assert(eddsa.verifyMiMC(tx.hashTxLeafArray([txLeaf]), signature, 
             [fromLeaf['pubKey_x'], fromLeaf['pubKey_y']]))
     },
 
@@ -254,7 +252,7 @@ module.exports = {
     },
 
     checkTokenTypes: function(tx, fromLeaf, toLeaf){
-        if (!balance.isZeroLeaf(toLeaf)){
+        if (!account.isZeroLeaf(toLeaf)){
             assert(
                 fromLeaf['token_type'] == toLeaf['token_type'] &&
                 tx['token_type'] == toLeaf['token_type'] &&

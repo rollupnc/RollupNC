@@ -1,66 +1,72 @@
-const snarkjs = require("snarkjs");
-const fs = require("fs");
-
-const account = require("../src/generate_accounts.js");
-const balanceLeaf = require("../src/generate_balance_leaf.js");
-const txLeaf = require("../src/generate_tx_leaf.js");
-const merkle = require("../src/MiMCMerkle.js")
-const update = require("../src/update.js")
 const eddsa = require("../circomlib/src/eddsa.js");
+const fs = require("fs");
+const Account = require("../src/account.js");
+const AccountTree = require("../src/accountTree.js");
+const Transaction = require("../src/transaction.js");
+const TxTree = require("../src/txTree.js");
+const treeHelper = require("../src/treeHelper.js");
+const getCircuitInput = require("../src/circuitInput.js");
 
 const TX_DEPTH = 2
 const BAL_DEPTH = 4
 
-// get empty tree hashes
-const zeroLeaf = balanceLeaf.zeroLeaf()
-const zeroLeafHash = balanceLeaf.zeroLeafHash()
-const zeroCache = merkle.getZeroCache(zeroLeafHash, BAL_DEPTH)
+// get empty account tree hashes
 
-// console.log(merkle.getZeroCache(zeroLeafHash, 5))
-// generate Coordinator, A, B, C, D, E, F accounts with the following parameters
-const num_accts = 7;
-const prvKeys = account.generatePrvKeys(num_accts);
-const zeroPubKey = account.zeroAddress()
-const pubKeys = account.generatePubKeys(prvKeys);
-pubKeys.unshift(zeroPubKey)
+const zeroAccount = new Account();
+accounts = [zeroAccount];
 
-// console.log('pubkeys', pubKeys)
+function generatePrvkey(i){
+    prvKey = Buffer.from(i.toString().padStart(64,'0'), "hex");
+    return prvKey;  
+}
 
-const token_types = [0, 0, 2, 1, 2, 1, 2, 1];
-const balances = [0, 0, 1000, 20, 200, 100, 500, 20];
-const nonces = [0, 0, 0, 0, 0, 0, 0, 0];
+function generatePubkey(prvkey){
+    pubkey = eddsa.prv2pub(prvkey);
+    return pubkey; 
+}
 
-// generate balance leaves for user accounts
-const balanceLeafArray = balanceLeaf.generateBalanceLeafArray(
-    account.getPubKeysX(pubKeys),
-    account.getPubKeysY(pubKeys),
-    token_types, balances, nonces
-)
+const coordinatorPrvkey = generatePrvkey(1);
+const coordinatorPubkey = generatePubkey(coordinatorPrvkey);
+const coordinator = new Account(
+    1, coordinatorPubkey[0], coordinatorPubkey[1],
+    0, 0, 0, coordinatorPrvkey
+);
 
-const first4BalanceLeafArray = balanceLeafArray.slice(0,4)
-const first4BalanceLeafArrayHash = balanceLeaf.hashBalanceLeafArray(first4BalanceLeafArray)
-const first4SubtreeRoot = merkle.rootFromLeafArray(first4BalanceLeafArrayHash)
-console.log('first4SubtreeRoot', first4SubtreeRoot)
-const first4SubtreeProof = merkle.getProofEmpty(2, zeroCache)
-console.log('first4SubtreeProof', first4SubtreeProof)
-console.log('first4WholeRoot', merkle.rootFromLeafAndPath(first4SubtreeRoot, 0, first4SubtreeProof))
+accounts.push(coordinator);
 
-const paddedTo16BalanceLeafArray = merkle.padLeafHashArray(balanceLeafArray, zeroLeaf, 8)
-const paddedTo16BalanceLeafArrayHash = balanceLeaf.hashBalanceLeafArray(paddedTo16BalanceLeafArray)
-const balanceLeafArrayHash = balanceLeaf.hashBalanceLeafArray(balanceLeafArray)
-const paddedBalanceLeafArrayHash = merkle.padLeafHashArray(balanceLeafArrayHash, zeroLeafHash)
-const height = merkle.getBase2Log(paddedBalanceLeafArrayHash.length)
-const nonEmptySubtreeRoot = merkle.rootFromLeafArray(paddedBalanceLeafArrayHash)
-console.log('nonEmptySubtreeRoot', nonEmptySubtreeRoot)
-const subtreeProof = merkle.getProofEmpty(height, zeroCache)
-console.log('subtreeProof', subtreeProof)
-const root = merkle.rootFromLeafAndPath(nonEmptySubtreeRoot, 0, subtreeProof)
-const rootCheck = merkle.rootFromLeafArray(paddedTo16BalanceLeafArrayHash)
-console.log('balance tree root', root)
-console.log('balance tree root check', rootCheck)
+// generate A, B, C, D, E, F accounts
 
-// const testFilledArray = merkle.fillLeafArray(balanceLeafArrayHash, zeroLeafHash, 10)
-// console.log(merkle.rootFromLeafArray(testFilledArray))
+const numAccounts = 6;
+const tokenTypes = [2, 1, 2, 1, 2, 1];
+const balances = [1000, 20, 200, 100, 500, 20];
+const nonces = [0, 0, 0, 0, 0, 0];
+
+for (var i = 0; i < numAccounts; i++){
+    prvkey = generatePrvkey(i + 2);
+    pubkey = generatePubkey(prvkey);
+    account = new Account(
+        i + 2, // index
+        pubkey[0], // pubkey x coordinate
+        pubkey[1], // pubkey y coordinate
+        balances[i], // balance
+        nonces[i], // nonce
+        tokenTypes[i], // tokenType,
+        prvkey 
+    )
+    accounts.push(account);
+}
+
+const first4Accounts = accounts.slice(0,4)
+const first4Subtree = new AccountTree(first4Accounts)
+const first4SubtreeRoot = first4Subtree.root
+
+const first8Accounts = accounts.slice(0,8)
+const first8Subtree = new AccountTree(first8Accounts)
+const first8SubtreeRoot = first8Subtree.root
+
+const paddedTo16Accounts = treeHelper.padArray(accounts, zeroAccount, 8)
+const accountTree = new AccountTree(paddedTo16Accounts)
+const root = accountTree.root
 
 // generate tx's: 
 // 1. Alice --500--> Charlie , 
@@ -68,68 +74,45 @@ console.log('balance tree root check', rootCheck)
 // 3. Bob --10--> Daenerys,
 // 4. empty tx (operator --0--> withdraw)
 
-from_accounts_idx = [2, 4, 3, 1]
-from_accounts = update.pickByIndices(pubKeys, from_accounts_idx)
+fromAccountsIdx = [2, 4, 3, 1]
+toAccountsIdx = [4, 0, 5, 0]
 
-to_accounts_idx = [4, 0, 5, 0]
-to_accounts = update.pickByIndices(pubKeys, to_accounts_idx)
-
-from_x = account.getPubKeysX(from_accounts)
-from_y = account.getPubKeysY(from_accounts)
-to_x = account.getPubKeysX(to_accounts)
-to_y = account.getPubKeysY(to_accounts)
 const amounts = [500, 200, 10, 0]
-const tx_token_types = [2, 2, 1, 0]
-const tx_nonces = [0, 0, 0, 0]
+const txTokenTypes = [2, 2, 1, 0]
+const txNonces = [0, 0, 0, 0]
 
-const txArray = txLeaf.generateTxLeafArray(
-    from_x, from_y, to_x, to_y, tx_nonces, amounts, tx_token_types
-)
+var txs = new Array(TX_DEPTH ** 2)
 
-const txLeafHashes = txLeaf.hashTxLeafArray(txArray)
-// console.log(txLeafHashes)
-
-const txTree = merkle.treeFromLeafArray(txLeafHashes)
-
-// const txRoot = merkle.rootFromLeafArray(txLeafHashes)
-
-// const txPos = merkle.generateMerklePosArray(TX_DEPTH)
-const txProofs = new Array(2**TX_DEPTH)
-for (jj = 0; jj < 2**TX_DEPTH; jj++){
-    txProofs[jj] = merkle.getProof(jj, txTree, txLeafHashes)
+for (var i = 0; i < txs.length; i++){
+    fromAccount = paddedTo16Accounts[fromAccountsIdx[i]];
+    toAccount = paddedTo16Accounts[toAccountsIdx[i]];
+    tx = new Transaction(
+        fromAccount.pubkeyX,
+        fromAccount.pubkeyY,
+        toAccount.pubkeyX,
+        toAccount.pubkeyY,
+        txNonces[i],
+        amounts[i],
+        txTokenTypes[i]
+    );
+    tx.hashTx();
+    tx.signTxHash(fromAccount.prvKey);
+    txs[i] = tx;
 }
 
-signingPrvKeys = new Array()
-from_accounts_idx.forEach(function(index){
-    signingPrvKeys.push(prvKeys[index - 1])
-})
+const txTree = new TxTree(txs);
+// console.log(txTree.leafNodes);
 
-const signatures = txLeaf.signTxLeafHashArray(
-    txLeafHashes, 
-    signingPrvKeys
-)
+const txProofs = new Array(2**TX_DEPTH)
+for (var jj = 0; jj < 2**TX_DEPTH; jj++){
+    txProofs[jj] = txTree.getProof(jj);
+}
 
-// for (i = 0; i < from_accounts.length; i++){
-//     console.log(
-//         eddsa.verifyMiMC(txLeafHashes[i], signatures[i], from_accounts[i])
-//     )
-// }
-
-const inputs = update.processTxArray(
-    TX_DEPTH,
-    BAL_DEPTH,
-    pubKeys,
-    paddedTo16BalanceLeafArray,
-    from_accounts_idx,
-    to_accounts_idx,
-    tx_nonces,
-    amounts,
-    tx_token_types,
-    signatures
-)
+const stateTransition = accountTree.processTxArray(txTree);
+const inputs = getCircuitInput(stateTransition);
 
 fs.writeFileSync(
-    "build/test_1_update_input.json",
+    "../build/test_1_update_input_refactored.json",
     JSON.stringify(inputs),
     "utf-8"
 );

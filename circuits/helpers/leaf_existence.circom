@@ -7,19 +7,19 @@ template LeafExistence(k){
 
     signal input leaf; 
     signal input root;
-    signal input paths2_root_pos[k];
-    signal input paths2_root[k];
+    signal input paths2rootPos[k];
+    signal input paths2root[k];
 
-    component computed_root = GetMerkleRoot(k);
-    computed_root.leaf <== leaf;
+    component computedRoot = GetMerkleRoot(k);
+    computedRoot.leaf <== leaf;
 
     for (var w = 0; w < k; w++){
-        computed_root.paths2_root[w] <== paths2_root[w];
-        computed_root.paths2_root_pos[w] <== paths2_root_pos[w];
+        computedRoot.paths2root[w] <== paths2root[w];
+        computedRoot.paths2rootPos[w] <== paths2rootPos[w];
     }
 
     // equality constraint: input tx root === computed tx root 
-    root === computed_root.out;
+    root === computedRoot.out;
 
 }
 

@@ -1,6 +1,6 @@
-include "../circomlib/circuits/comparators.circom"
-include "../circomlib/circuits/switcher.circom"
-include "../circomlib/circuits/gates.circom"
+include "../../circomlib/circuits/comparators.circom"
+include "../../circomlib/circuits/switcher.circom"
+include "../../circomlib/circuits/gates.circom"
 
 // Maps ints to (0, 1). Maps 0 to 0 and all other ints to 1.
 template ToBool() {
