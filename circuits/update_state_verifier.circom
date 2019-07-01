@@ -85,7 +85,7 @@ template Main(n,m) {
 
     currentState === intermediateRoots[0];
 
-    for (var i = 0; i < 2**m - 1; i++) {
+    for (var i = 0; i < 2**m; i++) {
 
         // transactions existence and signature check
         txExistence[i] = TxExistence(m);
