@@ -106,7 +106,7 @@ const stateTransition = accountTree.processTxArray(txTree);
 const inputs = getCircuitInput(stateTransition);
 
 fs.writeFileSync(
-    "../build/test_1_update_input.json",
+    "build/test_1_update_input.json",
     JSON.stringify(inputs),
     "utf-8"
 );
