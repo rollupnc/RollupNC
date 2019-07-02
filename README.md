@@ -95,6 +95,7 @@ zeroCache = string[bal_depth] //"biginteger"
 ```js
 class Transaction = {
   from: eddsa_pubKey,
+  // TODO: add fromIndex
   to: eddsa_pubKey,
   amount: integer,
   nonce: integer,
@@ -207,7 +208,7 @@ Note: there is a special transaction where the receiver is the `zero_leaf`. We c
 
 ### Private inputs (organised by purpose)
 ##### General
-- `intermediate_roots[2**(m+1)]`: the roots of the Accounts tree after processing each transaction. There are `2*2^m` intermediate roots because each transaction results in two updates (once to update the sender account, and then to update the receiver account)
+- `intermediate_roots[2**(m+1) + 1]`: the roots of the Accounts tree after processing each transaction. There are `2*2^m + 1` intermediate roots because each transaction results in two updates (once to update the sender account, and then to update the receiver account), and we also include the original root at the beginning (before updating any account)
 
 ##### Transaction information
 - sender and receiver addresses
