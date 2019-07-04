@@ -16,8 +16,8 @@ const zeroAccount = new Account();
 accounts = [zeroAccount];
 
 function generatePrvkey(i){
-    prvKey = Buffer.from(i.toString().padStart(64,'0'), "hex");
-    return prvKey;  
+    prvkey = Buffer.from(i.toString().padStart(64,'0'), "hex");
+    return prvkey;  
 }
 
 function generatePubkey(prvkey){
@@ -26,6 +26,7 @@ function generatePubkey(prvkey){
 }
 
 const coordinatorPrvkey = generatePrvkey(1);
+console.log('coordinatorPrvkey',coordinatorPrvkey)
 const coordinatorPubkey = generatePubkey(coordinatorPrvkey);
 const coordinator = new Account(
     1, coordinatorPubkey[0], coordinatorPubkey[1],
@@ -89,6 +90,7 @@ for (var i = 0; i < txs.length; i++){
     tx = new Transaction(
         fromAccount.pubkeyX,
         fromAccount.pubkeyY,
+        fromAccount.index,
         toAccount.pubkeyX,
         toAccount.pubkeyY,
         txNonces[i],
@@ -96,7 +98,7 @@ for (var i = 0; i < txs.length; i++){
         txTokenTypes[i]
     );
     tx.hashTx();
-    tx.signTxHash(fromAccount.prvKey);
+    tx.signTxHash(fromAccount.prvkey);
     txs[i] = tx;
 }
 

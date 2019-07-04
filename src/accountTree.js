@@ -1,4 +1,5 @@
 const Tree = require("./tree.js");
+const Transaction = require("./transaction.js")
 
 module.exports = class AccountTree extends Tree{
     constructor(
@@ -132,6 +133,18 @@ module.exports = class AccountTree extends Tree{
             acct => (acct.pubkeyX == pubkeyX && acct.pubkeyY == pubkeyY)
         )[0];
         return account
+    }
+
+    generateEmptyTx(pubkeyX, pubkeyY, index, prvkey){
+        const sender = this.findAccountByPubkey(pubkeyX, pubkeyY);
+        const nonce = sender.nonce;
+        const tokenType = sender.tokenType;
+        var tx = new Transaction(
+            pubkeyX, pubkeyY, index,
+            pubkeyX, pubkeyY,
+            nonce, 0, tokenType
+        );
+        tx.signTxHash(prvkey);
     }
 
 }

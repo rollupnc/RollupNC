@@ -45,6 +45,7 @@ template Main(n,m) {
     // tx info, 10 fields
     signal private input fromX[2**m]; //sender address x coordinate
     signal private input fromY[2**m]; //sender address y coordinate
+    signal private input fromIndex[2**m]; //sender account leaf index
     signal private input toX[2**m]; // receiver address x coordinate
     signal private input toY[2**m]; // receiver address y coordinate
     signal private input nonceFrom[2**m]; // sender account nonce
@@ -91,6 +92,7 @@ template Main(n,m) {
         txExistence[i] = TxExistence(m);
         txExistence[i].fromX <== fromX[i];
         txExistence[i].fromY <== fromY[i];
+        txExistence[i].fromIndex <== fromIndex[i];
         txExistence[i].toX <== toX[i];
         txExistence[i].toY <== toY[i];
         txExistence[i].nonce <== nonceFrom[i];

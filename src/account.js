@@ -4,7 +4,7 @@ module.exports = class Account {
     constructor(
         _index = 0, _pubkeyX = 0, _pubkeyY = 0, 
         _balance = 0, _nonce = 0, _tokenType  = 0,
-        _prvKey = 0
+        _prvkey = 0
     ) {
         this.index = _index;
         this.pubkeyX = _pubkeyX;
@@ -13,7 +13,7 @@ module.exports = class Account {
         this.nonce = _nonce;
         this.tokenType = _tokenType;
 
-        this.prvKey = _prvKey;
+        this.prvkey = _prvkey;
         this.hash = this.hashAccount()
     }
     
