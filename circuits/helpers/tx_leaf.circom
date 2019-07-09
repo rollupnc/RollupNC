@@ -4,6 +4,7 @@ template TxLeaf() {
 
     signal input fromX;
     signal input fromY;
+    signal input fromIndex;
     signal input toX;
     signal input toY;
     signal input nonce;
@@ -12,14 +13,15 @@ template TxLeaf() {
 
     signal output out;
 
-    component txLeaf = MultiMiMC7(7,91);
+    component txLeaf = MultiMiMC7(8,91);
     txLeaf.in[0] <== fromX;
     txLeaf.in[1] <== fromY;
-    txLeaf.in[2] <== toX;
-    txLeaf.in[3] <== toY; 
-    txLeaf.in[4] <== nonce;
-    txLeaf.in[5] <== amount;
-    txLeaf.in[6] <== tokenType;
+    txLeaf.in[2] <== fromIndex;
+    txLeaf.in[3] <== toX;
+    txLeaf.in[4] <== toY; 
+    txLeaf.in[5] <== nonce;
+    txLeaf.in[6] <== amount;
+    txLeaf.in[7] <== tokenType;
 
     out <== txLeaf.out;
 }

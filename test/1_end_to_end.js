@@ -181,12 +181,13 @@ contract("RollupNC deposit", async accounts => {
         "1762022020655193103898710344498807340207430243997238950919845130297394445492",
         "8832411107013507530516405716520512990480512909708424307433374075372921372064"
     ]
+    const index = 4;
     const nonce = 0;
     const amount = 200;
     const token_type_from = 2;
     const position = [1, 0]
     const txRoot =
-        "655926317945542797074993632917009959927083450268202759196407232656349645955"
+        "14053325031894235002744541221369412510941171790893507881802249870625790656164"
     const recipient = "0xC33Bdb8051D6d2002c0D80A1Dd23A1c9d9FC26E4"
 
     let withdraw_proof = require("../build/test_1_withdraw_proof.json")
@@ -203,14 +204,15 @@ contract("RollupNC deposit", async accounts => {
     const withdrawInput = require("../build/test_1_withdraw_public.json")
 
     const proof = [
-        "9147603832976282322177802237335033023892550539422420889941340634444804843588",
-        "17087000614363200202425883762664953902375829596010825089495865991695670487372"
+        "7098655440094613198080048525953255637313939645539008401738087356838738631323",
+        "2608995037327946514938120021228249424325886260519057431141160511257427858790"
     ]
 
     it("should accept valid withdrawals", async () => {
         let rollupNC = await RollupNC.deployed();
         let validWithdraw = await rollupNC.withdraw(
-            pubkey_from, [nonce, amount, token_type_from],
+            [pubkey_from[0], pubkey_from[1], index],
+            [nonce, amount, token_type_from],
             [position, proof], txRoot, recipient,
             withdrawA, withdrawB, withdrawC
         );

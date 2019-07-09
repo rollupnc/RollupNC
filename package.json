@@ -2,31 +2,31 @@
   "name": "rollupnc",
   "version": "1.0.0",
   "description": "An implementation of [rollup](https://github.com/barryWhiteHat/roll_up) in which the relayer **does not** publish transaction data to the main chain, but only publishes the new Merkle root at every update. This provides gas savings but not data availability guarantees: we assume the operator will always provide data to users so they can update their leaf.",
-  "main": "deployMimcHash.js",
+  "main": "utils/1_generate_multiple_sample.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "travis": "nohup npx npm run rpc",
     "test": "npx truffle test",
-    "rpc": "npx ganache-cli -d --mnemonic 'close fly dolphin oblige weasel layer sail clock forget tree method effort remove quiz whip'",
-    "deploy-mimc": "node deployMimcHash.js"
+    "rpc": "npx ganache-cli -d --mnemonic 'close fly dolphin oblige weasel layer sail clock forget tree method effort remove quiz whip'"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/barryWhiteHat/RollupNC.git"
+    "url": "git+https://github.com/rollupnc/RollupNC.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/barryWhiteHat/RollupNC/issues"
+    "url": "https://github.com/rollupnc/RollupNC/issues"
   },
-  "homepage": "https://github.com/barryWhiteHat/RollupNC#readme",
+  "homepage": "https://github.com/rollupnc/RollupNC#readme",
   "dependencies": {
     "blake-hash": "^1.1.0",
-    "circom": "0.0.29",
+    "circom": "0.0.30",
     "ethereumjs-tx": "^1.3.7",
     "ganache-cli": "^6.4.1",
+    "npx": "^10.2.0",
     "original-require": "^1.0.1",
     "snarkjs": "git+https://github.com/adria0/snarkjs.git  ",
     "truffle": "^5.0.10",

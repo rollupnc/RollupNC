@@ -16,7 +16,7 @@ contract IMiMCMerkle {
         uint256[2] memory
     ) public view returns(uint) {}
     function hashBalance(uint[5] memory) public view returns(uint){}
-    function hashTx(uint[7] memory) public view returns(uint) {}
+    function hashTx(uint[8] memory) public view returns(uint) {}
     function hashPair(uint[2] memory) public view returns(uint){}
     function hashHeight2Tree(uint[4] memory) public view returns(uint){}
 }
@@ -57,7 +57,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     event RegisteredToken(uint tokenType, address tokenContract);
     event RequestDeposit(uint[2] pubkey, uint amount, uint tokenType);
     event UpdatedState(uint currentRoot, uint oldRoot, uint txRoot);
-    event Withdraw(uint[2] pubkey_from, address recipient, uint txRoot, uint[3] txInfo);
+    event Withdraw(uint[3] accountInfo, address recipient, uint txRoot, uint[3] txInfo);
 
     constructor(
         address _mimcContractAddr,
@@ -155,7 +155,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     }
 
     function withdraw(
-        uint[2] memory pubkey_from,
+        uint[3] memory accountInfo, //[pubkeyX, pubkeyY, index]
         uint[3] memory txInfo, //[nonce, amount, token_type_from]
         uint[2][2] memory positionAndProof, //[[position], [proof]]
         uint txRoot,
@@ -166,7 +166,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     ) public{
         require(updates[txRoot] > 0, "txRoot must exist");
         uint txLeaf = mimcMerkle.hashTx([
-            pubkey_from[0], pubkey_from[1],
+            accountInfo[0], accountInfo[1], accountInfo[2],
             0, 0, //withdraw to zero address
             txInfo[0], txInfo[1], txInfo[2]
         ]);
@@ -178,10 +178,10 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         // message is hash of nonce and recipient address
         uint m = mimcMerkle.hashPair([txInfo[0], uint(recipient)]);
         require(withdraw_verifyProof(
-            a, b, c, [pubkey_from[0], pubkey_from[1], m]),
+            a, b, c, [accountInfo[0], accountInfo[1], m]),
             "eddsa signature is not valid");
 
-        emit Withdraw(pubkey_from, recipient, txRoot, txInfo);
+        emit Withdraw(accountInfo, recipient, txRoot, txInfo);
     }
 
     //call methods on TokenRegistry contract

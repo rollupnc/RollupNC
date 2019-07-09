@@ -7,6 +7,7 @@ template TxExistence(k){
 
     signal input fromX;
     signal input fromY;
+    signal input fromIndex;
     signal input toX;
     signal input toY;
     signal input nonce;
@@ -24,6 +25,7 @@ template TxExistence(k){
     component txLeaf = TxLeaf();
     txLeaf.fromX <== fromX;
     txLeaf.fromY <== fromY;
+    txLeaf.fromIndex <== fromIndex;
     txLeaf.toX <== toX;
     txLeaf.toY <== toY;
     txLeaf.nonce <== nonce; 

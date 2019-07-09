@@ -66,8 +66,8 @@ contract MiMCMerkle{
         return r;
     }
 
-    function hashTx(uint[7] memory array) public view returns(uint){
-        //[from_x, from_y, to_x, to_y, amt, token_type]
+    function hashTx(uint[8] memory array) public view returns(uint){
+        //[from_x, from_y,from_index, to_x, to_y, amt, token_type]
         uint r = IV;
         for (uint i = 0; i < array.length; i++){
             r = mimc.MiMCpe7(r, array[i]);

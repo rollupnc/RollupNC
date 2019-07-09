@@ -50,6 +50,7 @@ module.exports = function getCircuitInput(stateTransition){
     const txs = txTree.txs;
     var fromX = new Array(2 ** depth);
     var fromY = new Array(2 ** depth);
+    var fromIndex = new Array(2 ** depth);
     var toX = new Array(2 ** depth);
     var toY = new Array(2 ** depth);
     var nonceFrom = new Array(2 ** depth);
@@ -65,6 +66,7 @@ module.exports = function getCircuitInput(stateTransition){
 
         fromX[i] = tx.fromX;
         fromY[i] = tx.fromY;
+        fromIndex[i] = tx.fromIndex;
         toX[i] = tx.toX;
         toY[i] = tx.toY;
         nonceFrom[i] = tx.nonce;
@@ -89,6 +91,7 @@ module.exports = function getCircuitInput(stateTransition){
         paths2rootToPos: paths2rootToPos,
         fromX: stringifyBigInts(fromX),
         fromY: stringifyBigInts(fromY),
+        fromIndex: fromIndex,
         toX: stringifyBigInts(toX),
         toY: stringifyBigInts(toY),
         nonceFrom: nonceFrom,
