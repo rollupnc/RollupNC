@@ -121,11 +121,11 @@ module.exports = {
     },
 
     // fill an array with a fillerLength copies of a value
-    padArray: function(leafArray, padValue, fillerLength){
+    padArray: function(leafArray, padValue, length){
         if (Array.isArray(leafArray)){
             var arrayClone = leafArray.slice(0)
             const nearestPowerOfTwo = Math.ceil(module.exports.getBase2Log(leafArray.length))
-            const diff = fillerLength || 2**nearestPowerOfTwo - leafArray.length
+            const diff = length - leafArray.length || 2**nearestPowerOfTwo - leafArray.length
             for (var i = 0; i < diff; i++){
                 arrayClone.push(padValue)
             }

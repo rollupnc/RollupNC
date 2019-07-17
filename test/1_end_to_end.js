@@ -5,7 +5,7 @@ var TokenRegistry = artifacts.require("TokenRegistry")
     Here we want to test the smart contract sdeposit functionality.
 */
 
-contract("RollupNC deposit", async accounts => {
+contract("RollupNC", async accounts => {
 
 
     // ----------------------------------------------------------------------------------
@@ -83,11 +83,17 @@ contract("RollupNC deposit", async accounts => {
 
     it("should process first batch of deposits", async () => {
         let rollupNC = await RollupNC.deployed();
-        let processDeposit1 = await rollupNC.processDeposits(
-            first4HashPosition,
-            first4HashProof,
-            { from: accounts[0] }
-        )
+        let processDeposit1
+        try {
+            processDeposit1 = await rollupNC.processDeposits(
+                2,
+                first4HashPosition,
+                first4HashProof,
+                { from: accounts[0] }
+            )
+        } catch (error){
+            console.log('processDeposits revert reason', error)
+        }
         assert(processDeposit1, "processDeposit1 failed")
         await rollupNC.currentRoot().then(console.log)
     })
@@ -143,6 +149,7 @@ contract("RollupNC deposit", async accounts => {
     it("should process second batch of deposits", async () => {
         let rollupNC = await RollupNC.deployed();
         let processDeposit2 = await rollupNC.processDeposits(
+            2,
             second4HashPosition,
             second4HashProof,
             { from: accounts[0] }
@@ -211,9 +218,13 @@ contract("RollupNC deposit", async accounts => {
     it("should accept valid withdrawals", async () => {
         let rollupNC = await RollupNC.deployed();
         let validWithdraw = await rollupNC.withdraw(
-            [pubkey_from[0], pubkey_from[1], index],
-            [nonce, amount, token_type_from],
-            [position, proof], txRoot, recipient,
+            [
+                pubkey_from[0], pubkey_from[1], index,
+                0,0,
+                nonce, amount, token_type_from,
+                txRoot
+            ],
+            position, proof, recipient,
             withdrawA, withdrawB, withdrawC
         );
         assert(validWithdraw, "invalid withdraw");
