@@ -31,11 +31,16 @@ contract ITokenRegistry {
     function approveToken(address tokenContract) public onlyCoordinator{}
 }
 
+contract IERC20 {
+    function transferFrom(address from, address to, uint256 value) public returns(bool) {}
+}
+
 contract RollupNC is Update_verifier, Withdraw_verifier{
 
     IMiMC public mimc;
     IMiMCMerkle public mimcMerkle;
     ITokenRegistry public tokenRegistry;
+    IERC20 public tokenContract;
 
     uint256 public currentRoot;
     address public coordinator;
@@ -171,7 +176,8 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         uint[2][2] memory b,
         uint[2] memory c
     ) public{
-        require(updates[txInfo[8]] > 0, "txRoot must exist");
+        require(txInfo[7] > 0, "invalid tokenType");
+        require(updates[txInfo[8]] > 0, "txRoot does not exist");
         uint[] memory txArray = new uint[](8);
         for (uint i = 0; i < 8; i++){
             txArray[i] = txInfo[i];
@@ -192,6 +198,20 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
             [txInfo[0], txInfo[1], mimcMerkle.hashMiMC(msgArray)]
             ),
             "eddsa signature is not valid");
+
+        // transfer token on tokenContract
+        if (txInfo[7] == 1){
+            // ETH
+            msg.sender.transfer(txInfo[6]);
+        } else {
+            // ERC20
+            address tokenContractAddress = tokenRegistry.registeredTokens(txInfo[7]);
+            tokenContract = IERC20(tokenContractAddress);
+            require(
+                tokenContract.transferFrom(msg.sender, recipient, txInfo[6]),
+                "transferFrom failed"
+            );
+        }
 
         emit Withdraw(txInfo, recipient);
     }
