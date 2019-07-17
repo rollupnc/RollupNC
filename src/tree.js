@@ -35,8 +35,7 @@ module.exports = class Tree{
         return tree
     }
 
-    getProof(leafIdx){
-        const depth = this.depth;
+    getProof(leafIdx, depth = this.depth){
         const proofBinaryPos = treeHelper.idxToBinaryPos(leafIdx, depth);
         const proofPos = treeHelper.proofPos(leafIdx, depth);
         var proof = new Array(depth);
@@ -44,7 +43,10 @@ module.exports = class Tree{
         for (var i = 1; i < depth; i++){
             proof[i] = this.innerNodes[depth - i][proofPos[i]]
         }
-        return [proof, proofBinaryPos]
+        return {
+            proof: proof,
+            proofPos: proofPos
+        } 
     }
 
     verifyProof(leafHash, idx, proof){
