@@ -133,46 +133,46 @@ console.log(
     'root after second deposit is correct', 
     root2 == rootAfterSecondDeposit)
 
-// // generate tx's: 
-// // 1. Alice --500--> Charlie , 
-// // 2. Charlie --200--> withdraw,
-// // 3. Bob --10--> Daenerys,
-// // 4. empty tx (operator --0--> withdraw)
+// generate tx's: 
+// 1. Alice --500--> Charlie , 
+// 2. Charlie --200--> withdraw,
+// 3. Bob --10--> Daenerys,
+// 4. empty tx (operator --0--> withdraw)
 
-// fromAccountsIdx = [2, 4, 3, 1]
-// toAccountsIdx = [4, 0, 5, 0]
+fromAccountsIdx = [2, 4, 3, 1]
+toAccountsIdx = [4, 0, 5, 0]
 
-// const amounts = [500, 200, 10, 0]
-// const txTokenTypes = [2, 2, 1, 0]
-// const txNonces = [0, 0, 0, 0]
+const amounts = [500, 200, 10, 0]
+const txTokenTypes = [2, 2, 1, 0]
+const txNonces = [0, 0, 0, 0]
 
-// var txs = new Array(TX_DEPTH ** 2)
+var txs = new Array(TX_DEPTH ** 2)
 
-// for (var i = 0; i < txs.length; i++){
-//     fromAccount = paddedTo16Accounts[fromAccountsIdx[i]];
-//     toAccount = paddedTo16Accounts[toAccountsIdx[i]];
-//     tx = new Transaction(
-//         fromAccount.pubkeyX,
-//         fromAccount.pubkeyY,
-//         fromAccount.index,
-//         toAccount.pubkeyX,
-//         toAccount.pubkeyY,
-//         txNonces[i],
-//         amounts[i],
-//         txTokenTypes[i]
-//     );
-//     tx.hashTx();
-//     tx.signTxHash(fromAccount.prvkey);
-//     txs[i] = tx;
-// }
+for (var i = 0; i < txs.length; i++){
+    fromAccount = paddedAccounts2[fromAccountsIdx[i]];
+    toAccount = paddedAccounts2[toAccountsIdx[i]];
+    tx = new Transaction(
+        fromAccount.pubkeyX,
+        fromAccount.pubkeyY,
+        fromAccount.index,
+        toAccount.pubkeyX,
+        toAccount.pubkeyY,
+        txNonces[i],
+        amounts[i],
+        txTokenTypes[i]
+    );
+    tx.hashTx();
+    tx.signTxHash(fromAccount.prvkey);
+    txs[i] = tx;
+}
 
-// const txTree = new TxTree(txs);
+const txTree = new TxTree(txs);
 
-// const stateTransition = accountTree.processTxArray(txTree);
-// const inputs = getCircuitInput(stateTransition);
+const stateTransition = accountTree2.processTxArray(txTree);
+const inputs = getCircuitInput(stateTransition);
 
-// fs.writeFileSync(
-//     "build/test_1_update_input.json",
-//     JSON.stringify(inputs),
-//     "utf-8"
-// );
+fs.writeFileSync(
+    "build/test_1_update_input.json",
+    JSON.stringify(inputs),
+    "utf-8"
+);

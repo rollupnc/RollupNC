@@ -125,7 +125,8 @@ module.exports = class AccountTree extends Tree{
     }
 
     getAccountProof(account){
-        return this.getProof(account.index)
+        const proofObj = this.getProof(account.index)
+        return [proofObj.proof, proofObj.proofPos]
     }
 
     findAccountByPubkey(pubkeyX, pubkeyY){
