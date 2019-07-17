@@ -1,6 +1,7 @@
 var MiMCMerkle = artifacts.require("./dependencies/MiMCMerkle.sol");
 var RollupNC = artifacts.require("./RollupNC.sol");
 var TokenRegistry = artifacts.require("./TokenRegistry.sol");
+var TestToken = artifacts.require("./TestToken.sol");
 const mimcGenContract = require("../circomlib/src/mimc_gencontract.js");
 
 module.exports = async function(deployer, network, accounts) {
@@ -17,6 +18,7 @@ module.exports = async function(deployer, network, accounts) {
             {from: accounts[0]}
         );
     })
+    await deployer.deploy(TestToken, {from: accounts[3]})
 };
 
 async function deployMimc(account) {
