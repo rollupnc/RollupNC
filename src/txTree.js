@@ -17,8 +17,8 @@ module.exports = class TxTree extends Tree{
 
     getTxProofAndProofPos(tx){
         const txIdx = this.findTxIdx(tx.hash)
-        const [proof, proofPos] = this.getProof(txIdx)
-        return [proof, proofPos]
+        const proofObj = this.getProof(txIdx)
+        return [proofObj.proof, proofObj.proofPos]
     }
 
     findTxIdx(txHash){
