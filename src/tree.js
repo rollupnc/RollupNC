@@ -45,7 +45,7 @@ module.exports = class Tree{
         }
         return {
             proof: proof,
-            proofPos: proofPos
+            proofPos: proofBinaryPos
         } 
     }
 
