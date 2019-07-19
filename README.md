@@ -140,9 +140,9 @@ The user sends `deposit` and `withdraw` transactions directly to the smart contr
 
 2. Coordinator inserts deposit root into balance tree at `deposit_root.height`
 
-  - **prove that balance tree was empty at `deposit_root.height`**: provide `deposit_proof` to smart contract, a Merkle proof showing inclusion of an empty node at `deposit_tree.height` (`zeroCache[deposit_tree.height]`) in the current state root
+  - **prove that balance tree was empty at `deposit_root.height`**: provide `deposit_proof` to smart contract, a Merkle proof showing inclusion of an empty inner node at `deposit_tree.height` (`zeroCache[deposit_tree.height]`) in the current state root
 
-  - **update balance root on-chain**: using same `deposit_proof`, update the balance root replacing the empty node with the first element of `deposits_array`. (NB: the first element of `deposits_array` is the root of the tallest perfect deposit subtree.)
+  - **update balance root on-chain**: using same `deposit_proof`, update the balance root replacing the empty inner node with the first element of `deposits_array`. (NB: the first element of `deposits_array` is the root of the tallest perfect deposit subtree.)
 
 ### Transactions
 
