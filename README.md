@@ -95,7 +95,7 @@ zeroCache = string[bal_depth] //"biginteger"
 ```js
 class Transaction = {
   from: eddsa_pubKey,
-  // TODO: add fromIndex
+  fromIndex: integer,
   to: eddsa_pubKey,
   amount: integer,
   nonce: integer,
