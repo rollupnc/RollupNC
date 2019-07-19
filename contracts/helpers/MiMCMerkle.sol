@@ -25,12 +25,13 @@ contract MiMCMerkle{
         mimc = MiMC(_mimcContractAddr);
     }
 
-    function getRootFromProof2(
+    function getRootFromProof(
         uint256 _leaf,
-        uint256[2] memory _position,
-        uint256[2] memory _proof
+        uint256[] memory _position,
+        uint256[] memory _proof
     ) public view returns(uint) {
-        uint256[2] memory root;
+
+        uint256[] memory root = new uint256[](_proof.length);
 
         uint r = IV;
 
@@ -53,45 +54,19 @@ contract MiMCMerkle{
                 root[i] = mimc.MiMCpe7(mimc.MiMCpe7(r, _proof[i]), root[i - 1]);
             }
         }
+
         // return (_claimedRoot == root[root.length - 1]);
         return root[root.length - 1];
+
     }
 
-    function hashBalance(uint[5] memory array) public view returns(uint){
+    function hashMiMC(uint[] memory array) public view returns(uint){
         //[pubkey_x, pubkey_y, balance, nonce, token_type]
         uint r = IV;
         for (uint i = 0; i < array.length; i++){
             r = mimc.MiMCpe7(r, array[i]);
         }
         return r;
-    }
-
-    function hashTx(uint[8] memory array) public view returns(uint){
-        //[from_x, from_y,from_index, to_x, to_y, amt, token_type]
-        uint r = IV;
-        for (uint i = 0; i < array.length; i++){
-            r = mimc.MiMCpe7(r, array[i]);
-        }
-        return r;
-    }
-
-    function hashPair(uint[2] memory array) public view returns(uint){
-        uint r = IV;
-        for (uint i = 0; i < array.length; i++){
-            r = mimc.MiMCpe7(r, array[i]);
-        }
-        return r;
-    }
-
-    function hashHeight2Tree(uint[4] memory array) public view returns(uint){
-
-        uint[2] memory level1;
-        for (uint i = 0; i < level1.length; i++){
-            level1[i] = hashPair([array[2*i], array[2*i + 1]]);
-        }
-        uint level2;
-        level2 = hashPair([level1[0], level1[1]]);
-        return level2;
     }
 
 }

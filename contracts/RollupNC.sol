@@ -10,15 +10,12 @@ contract IMiMC {
 contract IMiMCMerkle {
 
     uint[16] public zeroCache;
-    function getRootFromProof2(
+    function getRootFromProof(
         uint256,
-        uint256[2] memory,
-        uint256[2] memory
+        uint256[] memory,
+        uint256[] memory
     ) public view returns(uint) {}
-    function hashBalance(uint[5] memory) public view returns(uint){}
-    function hashTx(uint[8] memory) public view returns(uint) {}
-    function hashPair(uint[2] memory) public view returns(uint){}
-    function hashHeight2Tree(uint[4] memory) public view returns(uint){}
+    function hashMiMC(uint[] memory) public view returns(uint){}
 }
 
 contract ITokenRegistry {
@@ -57,7 +54,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     event RegisteredToken(uint tokenType, address tokenContract);
     event RequestDeposit(uint[2] pubkey, uint amount, uint tokenType);
     event UpdatedState(uint currentRoot, uint oldRoot, uint txRoot);
-    event Withdraw(uint[3] accountInfo, address recipient, uint txRoot, uint[3] txInfo);
+    event Withdraw(uint[9] accountInfo, address recipient);
 
     constructor(
         address _mimcContractAddr,
@@ -113,8 +110,15 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
             tokenType == 1 ||
             tokenRegistry.registeredTokens(tokenType) != address(0),
         "tokenType is not registered.");
-        uint depositHash = mimcMerkle.hashBalance(
-            [pubkey[0], pubkey[1], amount, 0, tokenType]
+        uint[] memory depositArray = new uint[](5);
+        depositArray[0] = pubkey[0];
+        depositArray[1] = pubkey[1];
+        depositArray[2] = amount;
+        depositArray[3] = 0;
+        depositArray[4] = tokenType;
+
+        uint depositHash = mimcMerkle.hashMiMC(
+            depositArray
         );
         pendingDeposits.push(depositHash);
         emit RequestDeposit(pubkey, amount, tokenType);
@@ -122,9 +126,12 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         uint tmpDepositSubtreeHeight = 0;
         uint tmp = queueNumber;
         while(tmp % 2 == 0){
-            pendingDeposits[pendingDeposits.length - 2] = mimcMerkle.hashPair(
-                [pendingDeposits[pendingDeposits.length - 2],
-                pendingDeposits[pendingDeposits.length - 1]]);
+            uint[] memory array = new uint[](2);
+            array[0] = pendingDeposits[pendingDeposits.length - 2];
+            array[1] = pendingDeposits[pendingDeposits.length - 1];
+            pendingDeposits[pendingDeposits.length - 2] = mimcMerkle.hashMiMC(
+                array
+            );
             removeDeposit(pendingDeposits.length - 1);
             tmp = tmp / 2;
             tmpDepositSubtreeHeight++;
@@ -140,14 +147,15 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     // coordinator must specify subtree index in the tree since the deposits
     // are being inserted at a nonzero height
     function processDeposits(
-        uint[2] memory subtreePosition,
-        uint[2] memory subtreeProof
+        uint subtreeDepth,
+        uint[] memory subtreePosition,
+        uint[] memory subtreeProof
     ) public onlyCoordinator returns(uint256){
-        uint emptySubtreeRoot = mimcMerkle.zeroCache(2); //empty subtree of height 2
-        require(currentRoot == mimcMerkle.getRootFromProof2(
+        uint emptySubtreeRoot = mimcMerkle.zeroCache(subtreeDepth); //empty subtree of height 2
+        require(currentRoot == mimcMerkle.getRootFromProof(
             emptySubtreeRoot, subtreePosition, subtreeProof),
             "specified subtree is not empty");
-        currentRoot = mimcMerkle.getRootFromProof2(
+        currentRoot = mimcMerkle.getRootFromProof(
             pendingDeposits[0], subtreePosition, subtreeProof);
         removeDeposit(0);
         queueNumber = queueNumber - 2**depositSubtreeHeight;
@@ -155,33 +163,37 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     }
 
     function withdraw(
-        uint[3] memory accountInfo, //[pubkeyX, pubkeyY, index]
-        uint[3] memory txInfo, //[nonce, amount, token_type_from]
-        uint[2][2] memory positionAndProof, //[[position], [proof]]
-        uint txRoot,
+        uint[9] memory txInfo, //[pubkeyX, pubkeyY, index, toX ,toY, nonce, amount, token_type_from, txRoot]
+        uint[] memory position,
+        uint[] memory proof,
         address recipient,
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c
     ) public{
-        require(updates[txRoot] > 0, "txRoot must exist");
-        uint txLeaf = mimcMerkle.hashTx([
-            accountInfo[0], accountInfo[1], accountInfo[2],
-            0, 0, //withdraw to zero address
-            txInfo[0], txInfo[1], txInfo[2]
-        ]);
-        require(txRoot == mimcMerkle.getRootFromProof2(
-            txLeaf, positionAndProof[0], positionAndProof[1]),
+        require(updates[txInfo[8]] > 0, "txRoot must exist");
+        uint[] memory txArray = new uint[](8);
+        for (uint i = 0; i < 8; i++){
+            txArray[i] = txInfo[i];
+        }
+        uint txLeaf = mimcMerkle.hashMiMC(txArray);
+        require(txInfo[8] == mimcMerkle.getRootFromProof(
+            txLeaf, position, proof),
             "transaction does not exist in specified transactions root"
         );
 
         // message is hash of nonce and recipient address
-        uint m = mimcMerkle.hashPair([txInfo[0], uint(recipient)]);
+        uint[] memory msgArray = new uint[](2);
+        msgArray[0] = txInfo[5];
+        msgArray[1] = uint(recipient);
+
         require(withdraw_verifyProof(
-            a, b, c, [accountInfo[0], accountInfo[1], m]),
+            a, b, c,
+            [txInfo[0], txInfo[1], mimcMerkle.hashMiMC(msgArray)]
+            ),
             "eddsa signature is not valid");
 
-        emit Withdraw(accountInfo, recipient, txRoot, txInfo);
+        emit Withdraw(txInfo, recipient);
     }
 
     //call methods on TokenRegistry contract
