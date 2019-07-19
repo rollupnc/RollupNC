@@ -214,6 +214,7 @@ Note: there is a special transaction where the receiver is the `zero_leaf`. We c
 - sender and receiver addresses
   - `from_x[2**m]`: the sender address x coordinate for each transaction
   - `from_y[2**m]`: the sender address y coordinate for each transaction
+  - `from_index[2**m]`: the sender leaf index in the Merkle tree
   - `to_x[2**m]`: the receiver address x coordinate for each transaction
   - `to_y[2**m]`: the receiver address y coordinate for each transaction
 
