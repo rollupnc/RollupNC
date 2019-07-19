@@ -133,16 +133,16 @@ The user sends `deposit` and `withdraw` transactions directly to the smart contr
   deposits_array = [hash(A, B), C] // Charlie deposits, pushed to deposits_array
   deposits_array = [hash(A, B), C, D] // Daenerys deposits
   deposits_array = [hash(A, B), hash(C, D)] // Daenerys hashes Charlie's deposit and her own
-  deposits_array = [hash(A, B, C, D)] // Daenerys hashes H(A,B) and H(C,D)
+  deposits_array = [hash(hash(A, B), hash(C, D))] // Daenerys hashes H(A,B) and H(C,D)
 
   ```
-  Notice that the number of times a user has to hash `deposits_array` is equal to the number of times her `deposit_queue_number` can be divided by 2. Also, the first element of `deposits_array` is the tallest subtree at any given point.
+  Notice that the number of times a user has to hash `deposits_array` is equal to the number of times her `deposit_queue_number` can be divided by 2. Also, the first element of `deposits_array` is the root of the tallest perfect deposit subtree at any given point.
 
 2. Coordinator inserts deposit root into balance tree at `deposit_root.height`
 
   - **prove that balance tree was empty at `deposit_root.height`**: provide `deposit_proof` to smart contract, a Merkle proof showing inclusion of an empty node at `deposit_tree.height` (`zeroCache[deposit_tree.height]`) in the current state root
 
-  - **update balance root on-chain**: using same `deposit_proof`, update the balance root replacing the empty node with the first element of `deposits_array` 
+  - **update balance root on-chain**: using same `deposit_proof`, update the balance root replacing the empty node with the first element of `deposits_array`. (NB: the first element of `deposits_array` is the root of the tallest perfect deposit subtree.)
 
 ### Transactions
 
