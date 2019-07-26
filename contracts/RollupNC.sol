@@ -33,6 +33,7 @@ contract ITokenRegistry {
 
 contract IERC20 {
     function transferFrom(address from, address to, uint256 value) public returns(bool) {}
+	function transfer(address recipient, uint value) public returns (bool) {}
 }
 
 contract RollupNC is Update_verifier, Withdraw_verifier{
@@ -104,17 +105,29 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         uint amount,
         uint tokenType
     ) public payable {
-        require(
-            (amount > 0 && tokenType > 1) ||
-            (msg.value > 0 && tokenType == 1) ||
-            msg.sender == coordinator,
-            "Deposit must be greater than 0."
-        );
-        require(
-            tokenType == 0 ||
-            tokenType == 1 ||
-            tokenRegistry.registeredTokens(tokenType) != address(0),
-        "tokenType is not registered.");
+      if ( tokenType == 0 ) {
+           require(
+			   msg.sender == coordinator,
+			   "tokenType 0 is reserved for coordinator");
+           require(
+			   amount == 0 && msg.value == 0,
+			   "tokenType 0 does not have real value");
+        } else if ( tokenType == 1 ) {
+           require(
+			   msg.value > 0 && msg.value >= amount,
+			   "msg.value must at least equal stated amount in wei");
+        } else if ( tokenType > 1 ) {
+            require(
+				amount > 0,
+				"token deposit must be greater than 0");
+            address tokenContractAddress = tokenRegistry.registeredTokens(tokenType);
+            tokenContract = IERC20(tokenContractAddress);
+            require(
+                tokenContract.transferFrom(msg.sender, address(this), amount),
+                "token transfer not approved"
+            );
+        }
+
         uint[] memory depositArray = new uint[](5);
         depositArray[0] = pubkey[0];
         depositArray[1] = pubkey[1];
@@ -171,7 +184,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         uint[9] memory txInfo, //[pubkeyX, pubkeyY, index, toX ,toY, nonce, amount, token_type_from, txRoot]
         uint[] memory position,
         uint[] memory proof,
-        address recipient,
+        address payable recipient,
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c
@@ -202,14 +215,14 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         // transfer token on tokenContract
         if (txInfo[7] == 1){
             // ETH
-            msg.sender.transfer(txInfo[6]);
+            recipient.transfer(txInfo[6]);
         } else {
             // ERC20
             address tokenContractAddress = tokenRegistry.registeredTokens(txInfo[7]);
             tokenContract = IERC20(tokenContractAddress);
             require(
-                tokenContract.transferFrom(msg.sender, recipient, txInfo[6]),
-                "transferFrom failed"
+                tokenContract.transfer(recipient, txInfo[6]),
+                "transfer failed"
             );
         }
 
@@ -219,16 +232,16 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     //call methods on TokenRegistry contract
 
     function registerToken(
-        address tokenContract
+        address tokenContractAddress
     ) public {
-        tokenRegistry.registerToken(tokenContract);
+        tokenRegistry.registerToken(tokenContractAddress);
     }
 
     function approveToken(
-        address tokenContract
+        address tokenContractAddress
     ) public onlyCoordinator {
-        tokenRegistry.approveToken(tokenContract);
-        emit RegisteredToken(tokenRegistry.numTokens(),tokenContract);
+        tokenRegistry.approveToken(tokenContractAddress);
+        emit RegisteredToken(tokenRegistry.numTokens(),tokenContractAddress);
     }
 
     // helper functions
