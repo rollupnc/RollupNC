@@ -1,5 +1,6 @@
 var RollupNC = artifacts.require("RollupNC");
 var TokenRegistry = artifacts.require("TokenRegistry")
+var TestToken = artifacts.require("TestToken")
 
 /*
     Here we want to test the smart contract sdeposit functionality.
@@ -15,24 +16,38 @@ contract("RollupNC", async accounts => {
         let rollupNC = await RollupNC.deployed();
         let setRollupNC = await tokenRegistry.setRollupNC(rollupNC.address, { from: accounts[0] });
         assert(setRollupNC, 'setRollupNC failed')
-    })
+    });
 
     // ----------------------------------------------------------------------------------
 
-    const daiRopstenAddr = "0xaD6D458402F60fD3Bd25163575031ACDce07538D"
+
+    // const tokenContractAddr = "0xaD6D458402F60fD3Bd25163575031ACDce07538D"
 
     it("should register token", async () => {
+        let testToken = await TestToken.deployed();
         let rollupNC = await RollupNC.deployed();
-        let registerToken = await rollupNC.registerToken(daiRopstenAddr, { from: accounts[1] })
+        let registerToken = await rollupNC.registerToken(testToken.address, { from: accounts[1] })
         assert(registerToken, "token registration failed");
     });
 
     // ----------------------------------------------------------------------------------
 
     it("should approve token", async () => {
+        let testToken = await TestToken.deployed();
         let rollupNC = await RollupNC.deployed();
-        let approveToken = await rollupNC.approveToken(daiRopstenAddr, { from: accounts[0] })
+        let approveToken = await rollupNC.approveToken(testToken.address, { from: accounts[0] })
         assert(approveToken, "token registration failed");
+	});
+	
+    // ----------------------------------------------------------------------------------
+    it("should approve RollupNC on TestToken", async () => {
+        let rollupNC = await RollupNC.deployed();
+        let testToken = await TestToken.deployed();
+        let approveToken = await testToken.approve(
+            rollupNC.address, 1700,
+            {from: accounts[3]}
+        )
+        assert(approveToken, "approveToken failed")
     });
 
     // ----------------------------------------------------------------------------------
@@ -61,16 +76,16 @@ contract("RollupNC", async accounts => {
         assert(deposit1, "deposit1 failed");
 
         // Alice account
-        let deposit2 = await rollupNC.deposit(pubkeyA, 1000, 2, { from: accounts[1] })
+        let deposit2 = await rollupNC.deposit(pubkeyA, 1000, 2, { from: accounts[3] })
         assert(deposit2, "deposit2 failed");
 
         // Bob account
-        let deposit3 = await rollupNC.deposit(pubkeyB, 20, 1, { value: 1000, from: accounts[2] })
+        let deposit3 = await rollupNC.deposit(pubkeyB, 20, 1, { value: 20, from: accounts[2] })
         assert(deposit3, "deposit3 failed");
 
         await rollupNC.currentRoot().then(console.log)
 
-    });
+	});
 
     // ----------------------------------------------------------------------------------
 
@@ -119,24 +134,26 @@ contract("RollupNC", async accounts => {
 
     it("should make second batch of deposits", async () => {
         let rollupNC = await RollupNC.deployed();
+
         // zero leaf
         let deposit4 = await rollupNC.deposit(pubkeyC, 200, 2, { from: accounts[3] })
         assert(deposit4, "deposit4 failed");
 
         // operator account
-        let deposit5 = await rollupNC.deposit(pubkeyD, 100, 1, { value: 1000, from: accounts[4] })
+        let deposit5 = await rollupNC.deposit(pubkeyD, 100, 1, { value: 100, from: accounts[4] })
         assert(deposit5, "deposit5 failed");
 
         // Alice account
-        let deposit6 = await rollupNC.deposit(pubkeyE, 500, 2, { from: accounts[5] })
+        let deposit6 = await rollupNC.deposit(pubkeyE, 500, 2, { from: accounts[3] })
         assert(deposit6, "deposit6 failed");
 
         // Bob account
-        let deposit7 = await rollupNC.deposit(pubkeyF, 20, 1, { value: 1000, from: accounts[6] })
+        let deposit7 = await rollupNC.deposit(pubkeyF, 20, 1, { value: 20, from: accounts[6] })
         assert(deposit7, "deposit7 failed");
         await rollupNC.currentRoot().then(console.log)
 
     });
+
 
     // ----------------------------------------------------------------------------------
 
@@ -225,7 +242,8 @@ contract("RollupNC", async accounts => {
                 txRoot
             ],
             position, proof, recipient,
-            withdrawA, withdrawB, withdrawC
+            withdrawA, withdrawB, withdrawC,
+            {from: accounts[3]}
         );
         assert(validWithdraw, "invalid withdraw");
     });
