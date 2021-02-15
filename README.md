@@ -36,7 +36,7 @@ NB: it is trivial to change this implementation back to the original rollup, sin
 
 ## Building this repo
 
-1. Install node version 10.16.0, possibly using [nvm](https://github.com/nvm-sh/nvm)
+1. Install node version 14.15.4, possibly using [nvm](https://github.com/nvm-sh/nvm)
 2. Install truffle and ganache-cli
 bash
 $ npm install -g truffle ganache-cli
