@@ -3,7 +3,7 @@ var TokenRegistry = artifacts.require("TokenRegistry")
 var TestToken = artifacts.require("TestToken")
 
 /*
-    Here we want to test the smart contract sdeposit functionality.
+    Here we want to test the smart contract deposit functionality.
 */
 
 contract("RollupNC", async accounts => {
@@ -38,7 +38,7 @@ contract("RollupNC", async accounts => {
         let approveToken = await rollupNC.approveToken(testToken.address, { from: accounts[0] })
         assert(approveToken, "token registration failed");
 	});
-	
+
     // ----------------------------------------------------------------------------------
     it("should approve RollupNC on TestToken", async () => {
         let rollupNC = await RollupNC.deployed();
@@ -176,6 +176,7 @@ contract("RollupNC", async accounts => {
     })
 
     // ----------------------------------------------------------------------------------
+
     let updateProof = require("../build/test_1_update_proof.json")
     const updateA = [
         updateProof.pi_a[0], updateProof.pi_a[1]
