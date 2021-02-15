@@ -172,7 +172,7 @@ signature = signMiMC(prvKey, txHash)
 1. User submits proof of inclusion of withdraw tx on-chain
 Merkle proof of a transaction in a tx tree, made from user's EdDSA account to the zero address
 
-2. User EdDSA signs message specifying recipient's Ethereum address 
+2. User EdDSA signs message specifying recipient's Ethereum address
 
 3. User submits SNARK proof of EdDSA signature to smart contract
 

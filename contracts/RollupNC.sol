@@ -105,7 +105,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         uint amount,
         uint tokenType
     ) public payable {
-      if ( tokenType == 0 ) {
+        if ( tokenType == 0 ) {
            require(
 			   msg.sender == coordinator,
 			   "tokenType 0 is reserved for coordinator");
@@ -116,7 +116,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
            require(
 			   msg.value > 0 && msg.value >= amount,
 			   "msg.value must at least equal stated amount in wei");
-        } else if ( tokenType > 1 ) {
+        } else {
             require(
 				amount > 0,
 				"token deposit must be greater than 0");
