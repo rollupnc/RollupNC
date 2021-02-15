@@ -22,16 +22,16 @@
   },
   "homepage": "https://github.com/rollupnc/RollupNC#readme",
   "dependencies": {
-    "blake-hash": "^1.1.0",
+    "blake-hash": "^1.1.1",
     "circom": "0.0.30",
     "ethereumjs-tx": "^1.3.7",
-    "ganache-cli": "^6.4.1",
-    "npx": "^10.2.0",
-    "openzeppelin-solidity": "^2.3.0",
+    "ganache-cli": "^6.12.2",
+    "npx": "^10.2.2",
+    "openzeppelin-solidity": "^2.5.1",
     "original-require": "^1.0.1",
-    "snarkjs": "git+https://github.com/adria0/snarkjs.git  ",
-    "truffle": "^5.0.10",
-    "truffle-hdwallet-provider": "^1.0.10",
-    "web3": "^1.0.0-beta.52"
+    "snarkjs": "git+https://github.com/adria0/snarkjs.git",
+    "truffle": "^5.1.66",
+    "truffle-hdwallet-provider": "^1.0.17",
+    "web3": "^1.3.4"
   }
 }
