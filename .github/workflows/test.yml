@@ -1,0 +1,27 @@
+name: Node.js CI
+
+on:
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.16.0]
+    steps:
+    - name: Nodejs Build Test
+      uses: actions/checkout@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Submodule Update
+      run: git submodule update --init --recursive
+    - name: Install Global Module
+      run: npm install -g truffle ganache-cli
+    - name: Rollup Test
+    - run: npm i
+    - run: npm run rpc &
+    - run: npm run test
+      env:
+        CI: true
