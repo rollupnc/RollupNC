@@ -36,13 +36,18 @@ NB: it is trivial to change this implementation back to the original rollup, sin
 
 ## Building this repo
 
-1. Install node version 10.16.0, possibly using [nvm](https://github.com/nvm-sh/nvm)
+1. Install node version 14.15.4, possibly using [nvm](https://github.com/nvm-sh/nvm)
 2. Install truffle and ganache-cli
 bash
 $ npm install -g truffle ganache-cli
 3. Install submodules: use `git submodule update --init --recursive` to clone `circomlib` submodule
 4. Install npm modules (`npm i`) in both root directory and `circomlib` submodule
 5. [Check out this circom intro](https://github.com/iden3/circom/blob/master/TUTORIAL.md)
+
+## Test
+
+1. Run ganache: use `npm run rpc`
+2. Truffle test: use `npm run test`
 
 ## Spec
 
@@ -116,7 +121,7 @@ The user sends `deposit` and `withdraw` transactions directly to the smart contr
 1. User calls `deposit(eddsa_pubkey, amount, tokenType)` on smart contract. The `deposit()` function:
 
   - increments `deposit_queue_number` (global variable in smart contract)
-  
+
   - hashes `[eddsa_pubkey, amount, nonce = 0, tokenType]` to get the `deposit_leaf` (an `account_leaf`)
 
   - push `deposit_leaf` to `deposits_array`
@@ -127,7 +132,7 @@ The user sends `deposit` and `withdraw` transactions directly to the smart contr
   ```
 
   - hash deposit array into on-chain Merkle root, `deposit_root`
-  
+
   ```
   deposits_array = [hash(A, B)] // Bob hashes Alice's deposit and his own
   deposits_array = [hash(A, B), C] // Charlie deposits, pushed to deposits_array
@@ -167,7 +172,7 @@ signature = signMiMC(prvKey, txHash)
 1. User submits proof of inclusion of withdraw tx on-chain
 Merkle proof of a transaction in a tx tree, made from user's EdDSA account to the zero address
 
-2. User EdDSA signs message specifying recipient's Ethereum address 
+2. User EdDSA signs message specifying recipient's Ethereum address
 
 3. User submits SNARK proof of EdDSA signature to smart contract
 
@@ -177,7 +182,7 @@ The prover collects transactions from users and puts them through a SNARK circui
 
 ### Public inputs and output
 - `tx_root`: Merkle root of a tree of transactions sent to the coordinator
-- `current_state`: Merkle root of old Accounts tree 
+- `current_state`: Merkle root of old Accounts tree
 - `out`: Merkle root of updated Accounts tree
 
 ### What the circuit is actually doing
@@ -230,7 +235,7 @@ Note: there is a special transaction where the receiver is the `zero_leaf`. We c
   - `token_balance_to[2**m]`: the balance of the receiver account, for each transaction
 
 - amount and token type being transacted
-  - `amount[2**m]`: amount being transferred, for each transaction 
+  - `amount[2**m]`: amount being transferred, for each transaction
   - `token_type_from[2**m]`: the sender account token type, for each transaction
   - `token_type_to[2**m]`: the receiver account token type, for each transaction
 
@@ -243,4 +248,3 @@ Note: there is a special transaction where the receiver is the `zero_leaf`. We c
 - `paths2root_from_pos[2**m, n]`: a binary vector for each sender account indicating whether each node in its transfer proof is the left or right child
 - `paths2root_to[2**m, n]`: Merkle proofs of inclusion (`n` long, since the Accounts tree has depth `n`) for the receiver accounts (`2^m` of them)
 - `paths2root_to_pos[2**m, n]`: a binary vector for each receiver account indicating whether each node in its transfer proof is the left or right child
-
