@@ -1,7 +1,10 @@
-pragma solidity ^0.5.0;
+// SPDX-License-Identifier: Apache-2.0
 
-import "../build/Update_verifier.sol";
-import "../build/Withdraw_verifier.sol";
+pragma solidity ^0.8.0;
+
+import "./Update_verifier.sol";
+import "./Withdraw_verifier.sol";
+import "hardhat/console.sol";
 
 contract IMiMC {
     function MiMCpe7(uint256,uint256) public pure returns(uint256) {}
@@ -34,14 +37,19 @@ contract ITokenRegistry {
 contract IERC20 {
     function transferFrom(address from, address to, uint256 value) public returns(bool) {}
 	function transfer(address recipient, uint value) public returns (bool) {}
+    function balanceOf(address account) external view returns (uint256) {}
+    function allowance(address owner, address spender) external view returns (uint256) {}
 }
 
-contract RollupNC is Update_verifier, Withdraw_verifier{
+contract RollupNC {
 
     IMiMC public mimc;
     IMiMCMerkle public mimcMerkle;
     ITokenRegistry public tokenRegistry;
     IERC20 public tokenContract;
+
+    Update_verifier updateVerifier;
+    Withdraw_verifier withdrawVerifier;
 
     uint256 public currentRoot;
     address public coordinator;
@@ -57,10 +65,24 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     mapping(uint256 => uint256) public deposits; //leaf idx => leafHash
     mapping(uint256 => uint256) public updates; //txRoot => update idx
 
+    struct TxInfo {
+        uint pubkeyX;
+        uint pubkeyY;
+        uint index;
+        uint toX;
+        uint toY;
+        uint nonce;
+        uint amount;
+        uint token_type_from;
+        uint txRoot;
+        uint[] position;
+        uint[] proof;
+}
+
     event RegisteredToken(uint tokenType, address tokenContract);
     event RequestDeposit(uint[2] pubkey, uint amount, uint tokenType);
     event UpdatedState(uint currentRoot, uint oldRoot, uint txRoot);
-    event Withdraw(uint[9] accountInfo, address recipient);
+    event Withdraw(TxInfo accountInfo, address recipient);
 
     constructor(
         address _mimcContractAddr,
@@ -75,6 +97,8 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         queueNumber = 0;
         depositSubtreeHeight = 0;
         updateNumber = 0;
+        updateVerifier = new Update_verifier();
+        withdrawVerifier = new Withdraw_verifier();
     }
 
     modifier onlyCoordinator(){
@@ -90,7 +114,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         ) public onlyCoordinator {
         require(currentRoot == input[2], "input does not match current root");
         //validate proof
-        require(update_verifyProof(a,b,c,input),
+        require(updateVerifier.update_verifyProof(a,b,c,input),
         "SNARK proof is invalid");
         // update merkle root
         currentRoot = input[0];
@@ -181,47 +205,54 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
     }
 
     function withdraw(
-        uint[9] memory txInfo, //[pubkeyX, pubkeyY, index, toX ,toY, nonce, amount, token_type_from, txRoot]
-        uint[] memory position,
-        uint[] memory proof,
+        TxInfo memory txInfo, //[pubkeyX, pubkeyY, index, toX ,toY, nonce, amount, token_type_from, txRoot]
+        // uint[] memory position,
+        // uint[] memory proof,
         address payable recipient,
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c
     ) public{
-        require(txInfo[7] > 0, "invalid tokenType");
-        require(updates[txInfo[8]] > 0, "txRoot does not exist");
+        require(txInfo.token_type_from > 0, "invalid tokenType");
+        require(updates[txInfo.txRoot] > 0, "txRoot does not exist");
         uint[] memory txArray = new uint[](8);
-        for (uint i = 0; i < 8; i++){
-            txArray[i] = txInfo[i];
-        }
+        txArray[0] = txInfo.pubkeyX;
+        txArray[1] = txInfo.pubkeyY;
+        txArray[2] = txInfo.index;
+        txArray[3] = txInfo.toX;
+        txArray[4] = txInfo.toY;
+        txArray[5] = txInfo.nonce;
+        txArray[6] = txInfo.amount;
+        txArray[7] = txInfo.token_type_from;
+        
         uint txLeaf = mimcMerkle.hashMiMC(txArray);
-        require(txInfo[8] == mimcMerkle.getRootFromProof(
-            txLeaf, position, proof),
+        require(txInfo.txRoot == mimcMerkle.getRootFromProof(
+            txLeaf, txInfo.position, txInfo.proof),
             "transaction does not exist in specified transactions root"
         );
 
         // message is hash of nonce and recipient address
         uint[] memory msgArray = new uint[](2);
-        msgArray[0] = txInfo[5];
-        msgArray[1] = uint(recipient);
-
-        require(withdraw_verifyProof(
+        msgArray[0] = txInfo.nonce;
+        address tmp = recipient;
+        msgArray[1] = uint256(uint160(tmp));
+        
+        require(withdrawVerifier.withdraw_verifyProof(
             a, b, c,
-            [txInfo[0], txInfo[1], mimcMerkle.hashMiMC(msgArray)]
+            [txInfo.pubkeyX, txInfo.pubkeyY, mimcMerkle.hashMiMC(msgArray)]
             ),
             "eddsa signature is not valid");
 
         // transfer token on tokenContract
-        if (txInfo[7] == 1){
+        if (txInfo.token_type_from == 1){
             // ETH
-            recipient.transfer(txInfo[6]);
+            recipient.transfer(txInfo.amount);
         } else {
             // ERC20
-            address tokenContractAddress = tokenRegistry.registeredTokens(txInfo[7]);
+            address tokenContractAddress = tokenRegistry.registeredTokens(txInfo.token_type_from);
             tokenContract = IERC20(tokenContractAddress);
             require(
-                tokenContract.transfer(recipient, txInfo[6]),
+                tokenContract.transfer(recipient, txInfo.amount),
                 "transfer failed"
             );
         }
@@ -251,8 +282,7 @@ contract RollupNC is Update_verifier, Withdraw_verifier{
         for (uint i = index; i<pendingDeposits.length-1; i++){
             pendingDeposits[i] = pendingDeposits[i+1];
         }
-        delete pendingDeposits[pendingDeposits.length-1];
-        pendingDeposits.length--;
+        pendingDeposits.pop();
         return pendingDeposits;
     }
 }
