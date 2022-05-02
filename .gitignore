@@ -1,4 +1,8 @@
 node_modules/
+typechain/
+artifacts/
+cache/
+dist/
 .secret
 proving_key.json
 verification_key.json
