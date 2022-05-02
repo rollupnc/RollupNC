@@ -34,12 +34,12 @@ var accounts = [zeroAccount];
 
 function generatePrvkey(i){
     prvkey = Buffer.from(i.toString().padStart(64,'0'), "hex");
-    return prvkey;  
+    return prvkey;
 }
 
 function generatePubkey(prvkey){
     pubkey = eddsa.prv2pub(prvkey);
-    return pubkey; 
+    return pubkey;
 }
 
 const coordinatorPrvkey = generatePrvkey(1);
@@ -68,7 +68,7 @@ for (var i = 0; i < numAccounts; i++){
         balances[i], // balance
         nonces[i], // nonce
         tokenTypes[i], // tokenType,
-        prvkey 
+        prvkey
     )
     accounts.push(account);
 }
@@ -85,7 +85,7 @@ const rootAfterFirstDeposit = treeHelper.rootFromLeafAndPath(first4SubtreeRoot, 
 
 // check empty subtree proof
 console.log('subtree is empty',
-    unstringifyBigInts(zeroCache[0]) === 
+    unstringifyBigInts(zeroCache[0]) ===
     treeHelper.rootFromLeafAndPath(zeroCache[BAL_DEPTH - Math.log2(4)], 0, first4SubtreeProof)
 )
 console.log('new root after first deposit', rootAfterFirstDeposit)
@@ -99,7 +99,7 @@ const accountTree1 = new AccountTree(paddedAccounts1)
 const root1 = accountTree1.root
 
 console.log(
-    'root after first deposit is correct', 
+    'root after first deposit is correct',
     root1 == rootAfterFirstDeposit)
 
 const next4Accounts = accounts.slice(4,8)
@@ -116,7 +116,7 @@ const rootAfterSecondDeposit = treeHelper.rootFromLeafAndPath(next4SubtreeRoot, 
 
 // check empty subtree proof
 console.log('subtree is empty',
-    unstringifyBigInts(rootAfterFirstDeposit) === 
+    unstringifyBigInts(rootAfterFirstDeposit) ===
     treeHelper.rootFromLeafAndPath(zeroCache[BAL_DEPTH - Math.log2(4)], 1, next4SubtreeProof)
 )
 console.log('new root after second deposit',
@@ -130,11 +130,11 @@ const accountTree2 = new AccountTree(paddedAccounts2)
 const root2 = accountTree2.root
 
 console.log(
-    'root after second deposit is correct', 
+    'root after second deposit is correct',
     root2 == rootAfterSecondDeposit)
 
-// generate tx's: 
-// 1. Alice --500--> Charlie , 
+// generate tx's:
+// 1. Alice --500--> Charlie ,
 // 2. Charlie --200--> withdraw,
 // 3. Bob --10--> Daenerys,
 // 4. empty tx (operator --0--> withdraw)
@@ -172,7 +172,7 @@ const stateTransition = accountTree2.processTxArray(txTree);
 const inputs = getCircuitInput(stateTransition);
 
 fs.writeFileSync(
-    "build/test_1_update_input.json",
+    "input.json",
     JSON.stringify(inputs),
     "utf-8"
 );

@@ -1,4 +1,6 @@
 const treeHelper = require("./treeHelper.js");
+const {utils} = require("ffjavascript");
+const {stringifyBigInts, unstringifyBigInts} = utils;
 
 module.exports = class Tree{
 
@@ -16,6 +18,7 @@ module.exports = class Tree{
         const depth = merkle_path.length;
         const proofPos = treeHelper.proofPos(idx, depth);
         const affectedPos = treeHelper.getAffectedPos(proofPos);
+        console.log("affectedPos", proofPos, affectedPos, idx, depth)
         // get new values of affected inner nodes and update them
         const affectedInnerNodes = treeHelper.innerNodesFromLeafAndPath(leaf, idx, merkle_path);
 
@@ -38,6 +41,7 @@ module.exports = class Tree{
     getProof(leafIdx, depth = this.depth){
         const proofBinaryPos = treeHelper.idxToBinaryPos(leafIdx, depth);
         const proofPos = treeHelper.proofPos(leafIdx, depth);
+        console.log("tree: proof pos", leafIdx, depth, proofPos)
         var proof = new Array(depth);
         proof[0] = this.leafNodes[proofPos[0]]
         for (var i = 1; i < depth; i++){
@@ -46,12 +50,13 @@ module.exports = class Tree{
         return {
             proof: proof,
             proofPos: proofBinaryPos
-        } 
+        }
     }
 
     verifyProof(leafHash, idx, proof){
-        const computed_root = treeHelper.rootFromLeafAndPath(leafHash, idx, proof)
-        return this.root == computed_root;
+      //console.log("verify ", leafHash, proof)
+        const computed_root = treeHelper.rootFromLeafAndPath(stringifyBigInts(leafHash), idx, stringifyBigInts(proof))
+        return stringifyBigInts(this.root) == stringifyBigInts(computed_root);
     }
 
     findLeafIdxByHash(hash){

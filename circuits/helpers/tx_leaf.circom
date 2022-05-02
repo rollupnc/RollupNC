@@ -1,4 +1,5 @@
-include "../../circomlib/circuits/mimc.circom";
+pragma circom 2.0.0;
+include "../../node_modules/circomlib/circuits/mimc.circom";
 
 template TxLeaf() {
 
@@ -22,6 +23,7 @@ template TxLeaf() {
     txLeaf.in[5] <== nonce;
     txLeaf.in[6] <== amount;
     txLeaf.in[7] <== tokenType;
+    txLeaf.k <== 0;
 
     out <== txLeaf.out;
 }

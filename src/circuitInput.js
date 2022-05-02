@@ -1,10 +1,11 @@
-const {stringifyBigInts, unstringifyBigInts} = require('../src/stringifybigint.js')
+const {utils} = require("ffjavascript");
+const {stringifyBigInts, unstringifyBigInts} = utils;
 
 module.exports = function getCircuitInput(stateTransition){
 
     const currentState = stateTransition.originalState;
     const txTree = stateTransition.txTree;
-    
+
     const depth = txTree.depth;
 
     const paths2txRoot = stateTransition.paths2txRoot
@@ -40,7 +41,7 @@ module.exports = function getCircuitInput(stateTransition){
         intermediateRoots[2*i + 2] = delta.rootFromNewReceiver;
 
         balanceFrom[i] = delta.balanceFrom;
-        
+
         balanceTo[i] = delta.balanceTo;
         nonceTo[i] = delta.nonceTo;
         tokenTypeTo[i] = delta.tokenTypeTo;
@@ -61,7 +62,7 @@ module.exports = function getCircuitInput(stateTransition){
     var S = new Array(2 ** depth);
 
     for (var i = 0; i < txs.length; i++){
-        
+
         const tx = txs[i];
 
         fromX[i] = tx.fromX;
@@ -76,9 +77,9 @@ module.exports = function getCircuitInput(stateTransition){
         R8x[i] = tx.R8x;
         R8y[i] = tx.R8y;
         S[i] = tx.S;
-
+        tx.checkSignature()
     }
-    
+
     return {
         txRoot: stringifyBigInts(txTree.root),
         paths2txRoot: stringifyBigInts(paths2txRoot),

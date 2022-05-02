@@ -29,7 +29,7 @@ const inputs = {
 }
 
 fs.writeFileSync(
-    "build/test_1_withdraw_input.json",
+    "input.json",
     JSON.stringify(inputs),
     "utf-8"
 );

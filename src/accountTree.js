@@ -1,5 +1,7 @@
 const Tree = require("./tree.js");
 const Transaction = require("./transaction.js")
+const {utils} = require("ffjavascript");
+const {stringifyBigInts, unstringifyBigInts} = utils;
 
 module.exports = class AccountTree extends Tree{
     constructor(
@@ -31,7 +33,6 @@ module.exports = class AccountTree extends Tree{
             // process transaction
             console.log('processing tx', i)
             deltas[i] = this.processTx(tx);
-
         }
 
         return {
@@ -41,7 +42,6 @@ module.exports = class AccountTree extends Tree{
             paths2txRootPos: paths2txRootPos,
             deltas: deltas
         }
-
     }
 
     processTx(tx){
@@ -73,7 +73,7 @@ module.exports = class AccountTree extends Tree{
         const rootFromNewSender = this.root;
 
         const [receiverProof, receiverProofPos] = this.getAccountProof(receiver);
-        
+
         this.checkAccountExistence(receiver, receiverProof);
 
         receiver.credit(tx.amount);

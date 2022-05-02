@@ -1,3 +1,4 @@
+pragma circom 2.0.0;
 include "./balance_leaf.circom";
 include "./leaf_existence.circom";
 

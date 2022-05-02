@@ -25,5 +25,4 @@ module.exports = class TxTree extends Tree{
         const txIdx = this.txs.findIndex(tx => tx.hash == txHash)
         return txIdx
     }
-
 }

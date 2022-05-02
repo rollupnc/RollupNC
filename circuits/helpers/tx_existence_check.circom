@@ -1,6 +1,7 @@
+pragma circom 2.0.0;
 include "./tx_leaf.circom";
 include "./leaf_existence.circom";
-include "../../circomlib/circuits/eddsamimc.circom";
+include "../../node_modules/circomlib/circuits/eddsamimc.circom";
 
 template TxExistence(k){
 // k is depth of tx tree
@@ -28,7 +29,7 @@ template TxExistence(k){
     txLeaf.fromIndex <== fromIndex;
     txLeaf.toX <== toX;
     txLeaf.toY <== toY;
-    txLeaf.nonce <== nonce; 
+    txLeaf.nonce <== nonce;
     txLeaf.amount <== amount;
     txLeaf.tokenType <== tokenType;
 
@@ -41,14 +42,13 @@ template TxExistence(k){
         txExistence.paths2root[q] <== paths2root[q];
     }
 
-    component verifier = EdDSAMiMCVerifier();   
+    component verifier = EdDSAMiMCVerifier();
     verifier.enabled <== 1;
     verifier.Ax <== fromX;
     verifier.Ay <== fromY;
-    verifier.R8x <== R8x
-    verifier.R8y <== R8y
+    verifier.R8x <== R8x;
+    verifier.R8y <== R8y;
     verifier.S <== S;
     verifier.M <== txLeaf.out;
-
 }
 
