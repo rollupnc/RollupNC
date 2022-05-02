@@ -13,3 +13,6 @@ update_verification_key.json
 withdraw_circuit.json
 withdraw_proving_key.json
 withdraw_verification_key.json
+circuits/update_state_verifier_js
+circuits/withdraw_signature_verifier_js/
+yarn-error.log
