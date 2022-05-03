@@ -15,7 +15,8 @@ const main = async () => {
   eddsa = await buildEddsa()
   mimcjs = await buildMimc7();
   babyJub = await buildBabyjub();
-  let F = eddsa.babyJub.F;
+  //let F = eddsa.babyJub.F;
+  let F = mimcjs.F
 
   //var prvKey = Buffer.from("4".padStart(64,'0'), "hex");
   const prvKey = fromHexString("0001020304050607080900010203040506070809000102030405060708090002");

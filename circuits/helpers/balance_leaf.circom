@@ -15,7 +15,7 @@ template BalanceLeaf() {
     balanceLeaf.in[0] <== x;
     balanceLeaf.in[1] <== y;
     balanceLeaf.in[2] <== balance;
-    balanceLeaf.in[3] <== nonce; 
+    balanceLeaf.in[3] <== nonce;
     balanceLeaf.in[4] <== tokenType;
     balanceLeaf.k <== 0;
 

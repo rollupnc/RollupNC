@@ -4,16 +4,7 @@ artifacts/
 cache/
 dist/
 .secret
-proving_key.json
-verification_key.json
-circuit.json
-update_circuit.json
-update_proving_key.json
-update_verification_key.json
-withdraw_circuit.json
-withdraw_proving_key.json
-withdraw_verification_key.json
-circuits/update_state_verifier_js
+circuits/update_state_verifier_js/
 circuits/withdraw_signature_verifier_js/
 yarn-error.log
 package-lock.json

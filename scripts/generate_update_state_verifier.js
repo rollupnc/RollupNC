@@ -13,9 +13,6 @@ BigInt.prototype.toJSON = function() {
   return this.toString()
 }
 
-const {utils} = require("ffjavascript");
-const {stringifyBigInts, unstringifyBigInts} = utils;
-
 // const TX_DEPTH = 8
 // const BAL_DEPTH = 12
 
@@ -43,7 +40,6 @@ const main = async() => {
   var zeroCache = [zeroHash]
 
   for (var i = BAL_DEPTH - 1; i >= 0; i--){
-    //zeroCache.unshift(stringifyBigInts(zeroTree.innerNodes[i][0]))
     zeroCache.unshift(zeroTree.innerNodes[i][0])
   }
 
@@ -96,19 +92,16 @@ const main = async() => {
 
   const first4SubtreeRoot = first4Subtree.root
 
-  console.log('first4SubtreeRoot', first4SubtreeRoot)
-
   const first4SubtreeProof = zeroCache.slice(1, BAL_DEPTH - Math.log2(4) + 1).reverse()
-  console.log('first4SubtreeProof', first4SubtreeProof)
   const rootAfterFirstDeposit = await treeHelper.rootFromLeafAndPath(first4SubtreeRoot, 0, first4SubtreeProof)
 
   let shouldCache0 = treeHelper.rootFromLeafAndPath(zeroCache[BAL_DEPTH - Math.log2(4)], 0, first4SubtreeProof)
   // check empty subtree proof
   console.log('subtree is empty',
-    zeroCache[0] === stringifyBigInts(shouldCache0)
+    F.toString(zeroCache[0]) === F.toString(shouldCache0)
     //treeHelper.rootFromLeafAndPath(zeroCache[BAL_DEPTH - Math.log2(4)], 0, first4SubtreeProof)
   )
-  console.log('new root after first deposit', rootAfterFirstDeposit)
+  console.log('new root after first deposit', F.toString(rootAfterFirstDeposit))
 
   const paddedAccounts1 = treeHelper.padArray(
     first4Accounts, zeroAccount, numLeaves
@@ -120,29 +113,29 @@ const main = async() => {
 
   console.log(
     'root after first deposit is correct',
-    stringifyBigInts(root1) == stringifyBigInts(rootAfterFirstDeposit))
+    F.toString(root1) == F.toString(rootAfterFirstDeposit))
 
   const next4Accounts = accounts.slice(4,8)
   const next4Subtree = new AccountTree(next4Accounts)
 
   const next4SubtreeRoot = next4Subtree.root
 
-  console.log('next4SubtreeRoot', stringifyBigInts(next4SubtreeRoot))
+  console.log('next4SubtreeRoot', F.toString(next4SubtreeRoot))
 
   var next4SubtreeProof = zeroCache.slice(1, BAL_DEPTH - Math.log2(4) + 1).reverse()
   next4SubtreeProof[0] = first4SubtreeRoot
-  console.log('first8SubtreeProof', stringifyBigInts(next4SubtreeProof))
+  console.log('first8SubtreeProof', F.toString(next4SubtreeProof))
   const rootAfterSecondDeposit = treeHelper.rootFromLeafAndPath(next4SubtreeRoot, 1, next4SubtreeProof)
 
   // check empty subtree proof
   let shouldNext4SubtreeProof = treeHelper.rootFromLeafAndPath(zeroCache[BAL_DEPTH - Math.log2(4)], 1, next4SubtreeProof)
   console.log('subtree is empty',
-    stringifyBigInts(rootAfterFirstDeposit) ===
-    stringifyBigInts(shouldNext4SubtreeProof)
+    F.toString(rootAfterFirstDeposit) ===
+    F.toString(shouldNext4SubtreeProof)
     //treeHelper.rootFromLeafAndPath(zeroCache[BAL_DEPTH - Math.log2(4)], 1, next4SubtreeProof)
   )
   console.log('new root after second deposit',
-    stringifyBigInts(rootAfterSecondDeposit)
+    F.toString(rootAfterSecondDeposit)
   )
 
   const paddedAccounts2 = treeHelper.padArray(
@@ -153,7 +146,7 @@ const main = async() => {
 
   console.log(
     'root after second deposit is correct',
-    stringifyBigInts(root2) === stringifyBigInts(rootAfterSecondDeposit))
+    F.toString(root2) === F.toString(rootAfterSecondDeposit))
 
   // generate tx's:
   // 1. Alice --500--> Charlie ,
@@ -195,9 +188,8 @@ const main = async() => {
 
   const txTree = new TxTree(txs);
 
-  const stateTransition = accountTree2.processTxArray(txTree);
-  const inputs = getCircuitInput(stateTransition);
-  console.log(inputs)
+  const stateTransition = await accountTree2.processTxArray(txTree);
+  const inputs = await getCircuitInput(stateTransition);
 
   fs.writeFileSync(
     "input.json",

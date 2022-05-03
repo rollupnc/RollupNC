@@ -1,6 +1,5 @@
 const buildMimc7 = require("circomlibjs").buildMimc7;
-const {utils} = require("ffjavascript");
-const {stringifyBigInts, unstringifyBigInts} = utils;
+const buildEddsa = require("circomlibjs").buildEddsa;
 
 module.exports = class Account {
   constructor(
@@ -18,22 +17,25 @@ module.exports = class Account {
     this.prvkey = _prvkey;
     this.hash = undefined
     this.mimcjs = undefined
+    this.eddsa = undefined
   }
 
   async initialize() {
     this.mimcjs = await buildMimc7()
+    //this.eddsa = await buildEddsa()
     this.hash = this.hashAccount()
   }
 
   hashAccount(){
-    const accountHash = this.mimcjs.multiHash([
+    let input = [
       // this.index.toString(),
-      stringifyBigInts(this.pubkeyX),
-      stringifyBigInts(this.pubkeyY),
-      stringifyBigInts(this.balance),
-      stringifyBigInts(this.nonce),
-      stringifyBigInts(this.tokenType),
-    ])
+      this.pubkeyX,
+      this.pubkeyY,
+      this.balance,
+      this.nonce,
+      this.tokenType
+    ]
+    const accountHash = this.mimcjs.multiHash(input)
     return accountHash
   }
 

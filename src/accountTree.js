@@ -1,7 +1,7 @@
 const Tree = require("./tree.js");
 const Transaction = require("./transaction.js")
-const {utils} = require("ffjavascript");
-const {stringifyBigInts, unstringifyBigInts} = utils;
+
+const buildMimc7 = require("circomlibjs").buildMimc7;
 
 module.exports = class AccountTree extends Tree{
     constructor(
@@ -11,7 +11,9 @@ module.exports = class AccountTree extends Tree{
         this.accounts = _accounts
     }
 
-    processTxArray(txTree){
+    async processTxArray(txTree){
+        let mimcjs = await buildMimc7()
+        let F = mimcjs.F
 
         const originalState = this.root;
         const txs = txTree.txs;
@@ -27,7 +29,7 @@ module.exports = class AccountTree extends Tree{
             // verify tx exists in tx tree
             const [txProof, txProofPos] = txTree.getTxProofAndProofPos(tx);
             txTree.checkTxExistence(tx, txProof);
-            paths2txRoot[i] = txProof;
+            paths2txRoot[i] = [F.toString(txProof[0]), F.toString(txProof[1])];
             paths2txRootPos[i] = txProofPos;
 
             // process transaction
@@ -82,9 +84,9 @@ module.exports = class AccountTree extends Tree{
         this.root = this.innerNodes[0][0]
         const rootFromNewReceiver = this.root;
 
-        console.log('newReceiverHash', receiver.hash)
-        console.log('newReceiverHash', this.leafNodes[receiver.index])
-        console.log('rootFromNewReceiver', rootFromNewReceiver)
+        //console.log('newReceiverHash', receiver.hash)
+        //console.log('newReceiverHash', this.leafNodes[receiver.index])
+        //console.log('rootFromNewReceiver', rootFromNewReceiver)
 
 
         return {

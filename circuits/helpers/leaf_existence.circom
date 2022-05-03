@@ -6,13 +6,11 @@ include "./get_merkle_root.circom";
 template LeafExistence(k){
 // k is depth of tree
 
-    signal input leaf; 
+    signal input leaf;
     signal input root;
     signal input paths2rootPos[k];
     signal input paths2root[k];
 
-    log(leaf);
-    log(123);
     component computedRoot = GetMerkleRoot(k);
     computedRoot.leaf <== leaf;
 
@@ -22,8 +20,6 @@ template LeafExistence(k){
     }
 
     // equality constraint: input tx root === computed tx root 
-    log(root);
-    log(computedRoot.out);
     root === computedRoot.out;
 }
 

@@ -94,7 +94,6 @@ template Main(n, m) {
     currentState === intermediateRoots[0];
 
     for (var i = 0; i < 2**m; i++) {
-
         // transactions existence and signature check
         txExistence[i] = TxExistence(m);
         txExistence[i].fromX <== fromX[i];
@@ -117,7 +116,6 @@ template Main(n, m) {
         txExistence[i].R8y <== R8y[i];
         txExistence[i].S <== S[i];
 
-        log(11111);
         // sender existence check
         senderExistence[i] = BalanceExistence(n);
         senderExistence[i].x <== fromX[i];

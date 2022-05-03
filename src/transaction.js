@@ -1,9 +1,6 @@
 const buildMimc7 = require("circomlibjs").buildMimc7;
 const buildEddsa = require("circomlibjs").buildEddsa;
 
-const {utils} = require("ffjavascript");
-const {stringifyBigInts, unstringifyBigInts} = utils;
-
 module.exports = class Transaction  {
   constructor(
     _fromX, _fromY, _fromIndex,
@@ -37,22 +34,24 @@ module.exports = class Transaction  {
 
   hashTx(){
     // hash unsigned transaction
-    const txHash = this.mimcjs.multiHash([
-      stringifyBigInts(this.fromX),
-      stringifyBigInts(this.fromY),
-      stringifyBigInts(this.fromIndex),
-      stringifyBigInts(this.toX),
-      stringifyBigInts(this.toY),
-      stringifyBigInts(this.nonce),
-      stringifyBigInts(this.amount),
-      stringifyBigInts(this.tokenType)
-    ]);
+    let F = this.mimcjs.F
+    const input = [
+      F.toString(this.fromX),
+      F.toString(this.fromY),
+      this.fromIndex,
+      this.toX == 0? 0 : F.toString(this.toX),
+      this.toY == 0? 0 : F.toString(this.toY),
+      this.nonce,
+      this.amount,
+      this.tokenType
+    ];
+    const txHash = this.mimcjs.multiHash(input)
     this.hash = txHash;
     return txHash
   }
 
   signTxHash(prvkey){
-    const signature = this.eddsa.signMiMC(prvkey, this.eddsa.F.e(this.hash));
+    const signature = this.eddsa.signMiMC(prvkey, this.hash);
     this.R8x = signature.R8[0];
     this.R8y = signature.R8[1];
     this.S = signature.S;

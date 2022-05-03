@@ -19,7 +19,7 @@ template TxLeaf() {
     txLeaf.in[1] <== fromY;
     txLeaf.in[2] <== fromIndex;
     txLeaf.in[3] <== toX;
-    txLeaf.in[4] <== toY; 
+    txLeaf.in[4] <== toY;
     txLeaf.in[5] <== nonce;
     txLeaf.in[6] <== amount;
     txLeaf.in[7] <== tokenType;

@@ -1,8 +1,5 @@
-//const mimcjs = require("../circomlib/src/mimc7.js");
 const buildMimc7 = require("circomlibjs").buildMimc7;
-const bigInt = require('big-integer');
-const {utils} = require("ffjavascript");
-const {stringifyBigInts, unstringifyBigInts} = utils;
+//const bigInt = require('big-integer');
 
 var mimcjs
 module.exports = {
@@ -18,27 +15,34 @@ module.exports = {
       var left
       var right
 
-      //FIXME
       //left = bigInt(leaf) - bigInt(merkle_path_pos[0])*(bigInt(leaf) - bigInt(merkle_path[0]));
       //right = bigInt(merkle_path[0]) - bigInt(merkle_path_pos[0])*(bigInt(merkle_path[0]) - bigInt(leaf));
       if (merkle_path_pos[0] == 0) {
-        left = stringifyBigInts(leaf);
-        right = stringifyBigInts(merkle_path[0]);
+        left = (leaf);
+        right = (merkle_path[0]);
       } else {
-        left = stringifyBigInts(merkle_path[0])
-        right = stringifyBigInts(leaf);
+        left = (merkle_path[0])
+        right = (leaf);
       }
+      //console.log("rootFromLeafAndPath",
+      //  mimcjs.F.toString(left),
+      //  mimcjs.F.toString(right)
+      //)
       root[0] = mimcjs.multiHash([left, right]);
       for (var i = 1; i < depth; i++) {
         //left = root[i-1] - bigInt(merkle_path_pos[i])*(root[i-1] - bigInt(merkle_path[i]));
         //right = bigInt(merkle_path[i]) - bigInt(merkle_path_pos[i])*(bigInt(merkle_path[i]) - root[i-1]);
         if (merkle_path_pos[i] == 0) {
-          left = stringifyBigInts(root[i-1]);
-          right = stringifyBigInts(merkle_path[i]);
+          left = (root[i-1]);
+          right = (merkle_path[i]);
         } else {
-          left = stringifyBigInts(merkle_path[i])
-          right = stringifyBigInts(root[i-1]);
+          left = (merkle_path[i])
+          right = (root[i-1]);
         }
+      //console.log("rootFromLeafAndPath",
+      //  mimcjs.F.toString(left),
+      //  mimcjs.F.toString(right)
+      //)
         root[i] = mimcjs.multiHash([left, right]);
       }
       return root[depth - 1];
@@ -59,12 +63,16 @@ module.exports = {
       var right
 
       if (merkle_path_pos[0] == 0) {
-        left = stringifyBigInts(leaf);
-        right = stringifyBigInts(merkle_path[0]);
+        left = (leaf);
+        right = (merkle_path[0]);
       } else {
-        left = stringifyBigInts(merkle_path[0])
-        right = stringifyBigInts(leaf);
+        left = (merkle_path[0])
+        right = (leaf);
       }
+      console.log("innerNodesFromLeafAndPath",
+        mimcjs.F.toString(left),
+        mimcjs.F.toString(right)
+      )
 
       innerNodes[0] = mimcjs.multiHash([left, right]);
       for (var i = 1; i < depth; i++) {
@@ -72,17 +80,20 @@ module.exports = {
         //right = bigInt(merkle_path[i]) - bigInt(merkle_path_pos[i])*(bigInt(merkle_path[i]) - innerNodes[i-1]);
 
         if (merkle_path_pos[i] == 0) {
-          left = stringifyBigInts(innerNodes[i-1]);
-          right = stringifyBigInts(merkle_path[i]);
+          left = (innerNodes[i-1]);
+          right = (merkle_path[i]);
         } else {
-          left = stringifyBigInts(merkle_path[i])
-          right = stringifyBigInts(innerNodes[i-1]);
+          left = (merkle_path[i])
+          right = (innerNodes[i-1]);
         }
+      //console.log("innerNodesFromLeafAndPath",
+      //  mimcjs.F.toString(left),
+      //  mimcjs.F.toString(right)
+      //)
         innerNodes[i] = mimcjs.multiHash([left, right]);
       }
       return innerNodes;
     } else {
-      throw new Error("invlid")
       return leaf
     }
 
@@ -151,7 +162,7 @@ module.exports = {
       arrayHash = []
       for (var i = 0; i < array.length; i = i + 2){
         arrayHash.push(mimcjs.multiHash(
-          [stringifyBigInts(array[i]), stringifyBigInts(array[i+1])]
+          [(array[i]), (array[i+1])]
         ))
       }
       return arrayHash

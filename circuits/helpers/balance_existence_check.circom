@@ -29,6 +29,4 @@ template BalanceExistence(k){
         balanceExistence.paths2rootPos[s] <== paths2rootPos[s];
         balanceExistence.paths2root[s] <== paths2root[s];
     }
-
-
 }
