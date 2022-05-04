@@ -29,4 +29,4 @@ snarkjs groth16 prove circuit_final.zkey witness.wtns proof.json public.json
 #snarkjs groth16 verify verification_key.json public.json proof.json
 
 cd ..
-snarkjs zkey export solidityverifier ${base_dir}/circuit_final.zkey ../contracts/verifier.sol
+snarkjs zkey export solidityverifier ${base_dir}/circuit_final.zkey ../contracts/${base_dir}.sol
