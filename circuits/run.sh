@@ -26,7 +26,7 @@ snarkjs zkey contribute circuit_0000.zkey circuit_final.zkey --name="1st Contrib
 
 snarkjs zkey export verificationkey circuit_final.zkey verification_key.json
 snarkjs groth16 prove circuit_final.zkey witness.wtns proof.json public.json
-#snarkjs groth16 verify verification_key.json public.json proof.json
+snarkjs groth16 verify verification_key.json public.json proof.json
 
 cd ..
-snarkjs zkey export solidityverifier ${base_dir}/circuit_final.zkey ../contracts/${base_dir}.sol
+snarkjs zkey export solidityverifier ${base_dir}/circuit_final.zkey ../contracts/${circuit_name}.sol
