@@ -1,5 +1,7 @@
-const buildEddsa = require("circomlibjs").buildEddsa;
+const 
+buildEddsa = require("circomlibjs").buildEddsa;
 const buildMimc7 = require("circomlibjs").buildMimc7;
+const buildBabyJub = require("circomlibjs").buildBabyJub;
 const fs = require("fs");
 const Tree = require("../src/tree.js");
 const Account = require("../src/account.js");
@@ -27,11 +29,18 @@ function generatePrvkey(i){
 const main = async() => {
   await treeHelper.initialize()
 
+  let eddsa = await buildEddsa();
+  let mimcjs = await buildMimc7();
+
+  let F = mimcjs.F;
+
   // get empty account tree hashes
   let zeroAccount = new Account();
   await zeroAccount.initialize();
 
   const zeroHash = await zeroAccount.hashAccount()
+  console.log(typeof zeroHash)
+  console.log("zeroHash:", F.toString(zeroHash))
   const numLeaves = 2**BAL_DEPTH;
   const zeroLeaves = new Array(numLeaves).fill(zeroHash)
 
@@ -45,9 +54,11 @@ const main = async() => {
 
   var accounts = [zeroAccount];
 
-  let eddsa = await buildEddsa();
-  let mimcjs = await buildMimc7();
-  let F = mimcjs.F;
+ 
+
+  for (var i = 0; i < zeroCache.length; i++) {
+    console.log("zeroCache:", F.toString(zeroCache[i]));
+  }
 
   function generatePubkey(prvkey){
     pubkey = eddsa.prv2pub(prvkey);
@@ -87,10 +98,17 @@ const main = async() => {
     accounts.push(account);
   }
 
+  for (var i = 1; i < 8; i++) {
+    console.log("index:", accounts[i].index)
+    console.log("pubkeyX:", F.toString(accounts[i].pubkeyX))
+    console.log("pubkeyY:", F.toString(accounts[i].pubkeyY))
+  }
+
   const first4Accounts = accounts.slice(0,4)
   const first4Subtree = new AccountTree(first4Accounts)
 
   const first4SubtreeRoot = first4Subtree.root
+  console.log('first4SubtreeRoot', F.toString(first4SubtreeRoot))
 
   const first4SubtreeProof = zeroCache.slice(1, BAL_DEPTH - Math.log2(4) + 1).reverse()
   const rootAfterFirstDeposit = await treeHelper.rootFromLeafAndPath(first4SubtreeRoot, 0, first4SubtreeProof)

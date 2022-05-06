@@ -1,6 +1,7 @@
 const buildMimc7 = require("circomlibjs").buildMimc7;
 const buildEddsa = require("circomlibjs").buildEddsa;
 
+
 module.exports = class Account {
   constructor(
     _index = 0, _pubkeyX = 0, _pubkeyY = 0,

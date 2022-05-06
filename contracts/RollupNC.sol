@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./Update_verifier.sol";
-import "./Withdraw_verifier.sol";
+import "./update_state_verifier.sol";
+import "./withdraw_signature_verifier.sol";
 import "hardhat/console.sol";
 
 contract IMiMC {
@@ -162,6 +162,7 @@ contract RollupNC {
         uint depositHash = mimcMerkle.hashMiMC(
             depositArray
         );
+        console.log("depositHash:", depositHash);
         pendingDeposits.push(depositHash);
         emit RequestDeposit(pubkey, amount, tokenType);
         queueNumber++;
@@ -194,11 +195,16 @@ contract RollupNC {
         uint[] memory subtreeProof
     ) public onlyCoordinator returns(uint256){
         uint emptySubtreeRoot = mimcMerkle.zeroCache(subtreeDepth); //empty subtree of height 2
+        console.log("getRootFromProof:", mimcMerkle.getRootFromProof(
+            emptySubtreeRoot, subtreePosition, subtreeProof));
+        console.log("currentRoot:", currentRoot);
         require(currentRoot == mimcMerkle.getRootFromProof(
             emptySubtreeRoot, subtreePosition, subtreeProof),
             "specified subtree is not empty");
+        console.log("pendingDeposits", pendingDeposits[0]);
         currentRoot = mimcMerkle.getRootFromProof(
             pendingDeposits[0], subtreePosition, subtreeProof);
+        console.log("current root:", currentRoot);
         removeDeposit(0);
         queueNumber = queueNumber - 2**depositSubtreeHeight;
         return currentRoot;
